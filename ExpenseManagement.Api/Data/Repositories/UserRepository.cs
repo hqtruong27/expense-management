@@ -42,8 +42,6 @@ namespace ExpenseManagement.Api.Data.Repositories
 
         public async Task<JwtTokenResponse> AuthenticateAsync(string username, string password)
         {
-            var e = await _userManager.FindByNameAsync(username);
-            await _signInManager.SignInAsync(await _userManager.FindByNameAsync(username), false);
             var result = await _signInManager.PasswordSignInAsync(username, password, false, lockoutOnFailure: false);
             if (result.Succeeded)
             {

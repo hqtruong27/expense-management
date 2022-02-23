@@ -24,7 +24,6 @@ namespace ExpenseManagement.Api.Controllers
         [HttpPost("Authenticate")]
         public async Task<IActionResult> Authenticate([FromBody] AuthenticateRequest request)
         {
-            var e = await _userRepository.FirstOrDefaultAsync(x => x.UserName == request.Username);
             var result = await _userRepository.AuthenticateAsync(request.Username, request.Password);
             if (result.IsAuthenticated)
             {
