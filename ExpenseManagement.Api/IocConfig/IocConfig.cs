@@ -162,7 +162,7 @@ namespace ExpenseManagement.Api.IocConfig
             builder.Services.AddSingleton(builder.Configuration.GetSection(nameof(Email)).Get<Email>());
         }
 
-        public static void UseCorsExtensions(this WebApplication app)
+        public static IApplicationBuilder UseCorsExtensions(this WebApplication app)
         {
             // configure HTTP request pipeline
             {
@@ -173,7 +173,21 @@ namespace ExpenseManagement.Api.IocConfig
                 //app.UseMiddleware<JwtMiddleware>();
 
                 //app.MapControllers();
+
+                return app;
             }
+        }
+
+        public static IApplicationBuilder UseSwaggerExtensions(this WebApplication app)
+        {
+            app.UseSwagger();
+            app.UseSwaggerUI(c =>
+            {
+                c.SwaggerEndpoint("/swagger/v1/swagger.json", "My API V1");
+                c.RoutePrefix = "";
+            });
+
+            return app;
         }
     }
 }
