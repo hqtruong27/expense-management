@@ -1,0 +1,31 @@
+﻿
+Microsoft Visual Studio Solution File, Format Version 12.00
+# Visual Studio Version 17
+VisualStudioVersion = 17.0.32126.317
+MinimumVisualStudioVersion = 10.0.40219.1
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "ExpenseManagement.Api", "ExpenseManagement.Api\ExpenseManagement.Api.csproj", "{6909816A-B8E1-42E1-91F0-FA7EE152F1A2}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Identity", "Identity\Identity.csproj", "{8245805D-7391-4EB1-8563-A70317FA1256}"
+EndProject
+Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|Any CPU = Debug|Any CPU
+		Release|Any CPU = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{6909816A-B8E1-42E1-91F0-FA7EE152F1A2}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{6909816A-B8E1-42E1-91F0-FA7EE152F1A2}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{6909816A-B8E1-42E1-91F0-FA7EE152F1A2}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{6909816A-B8E1-42E1-91F0-FA7EE152F1A2}.Release|Any CPU.Build.0 = Release|Any CPU
+		{8245805D-7391-4EB1-8563-A70317FA1256}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{8245805D-7391-4EB1-8563-A70317FA1256}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{8245805D-7391-4EB1-8563-A70317FA1256}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{8245805D-7391-4EB1-8563-A70317FA1256}.Release|Any CPU.Build.0 = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(SolutionProperties) = preSolution
+		HideSolutionNode = FALSE
+	EndGlobalSection
+	GlobalSection(ExtensibilityGlobals) = postSolution
+		SolutionGuid = {4B64F673-E2C0-44BA-8213-CD2C4C1ADC40}
+	EndGlobalSection
+EndGlobal
