@@ -2,6 +2,7 @@
 using ExpenseManagement.Api.Data.Models;
 using ExpenseManagement.Api.Data.Repositories;
 using ExpenseManagement.Api.Infrastructure;
+using ExpenseManagement.Api.mapper;
 using ExpenseManagement.Api.Mfa;
 using ExpenseManagement.Api.Model;
 using ExpenseManagement.Api.Options;
@@ -29,10 +30,10 @@ namespace ExpenseManagement.Api.IocConfig
                     .AddDefaultTokenProviders();
 
             builder.Services.AddCors(option => option.AddPolicy("CorsPolicy", x => x.AllowAnyMethod()
-                                             .AllowAnyHeader()
-                                             .AllowAnyOrigin()));
+                                                     .AllowAnyHeader()
+                                                     .AllowAnyOrigin()));
 
-            builder.Services.AddAutoMapper(AppDomain.CurrentDomain.GetAssemblies());
+            builder.Services.AddAutoMapper(typeof(ServiceProfile).Assembly);
             builder.Services.AddHttpClient();
             builder.Services.AddHttpContextAccessor();
             builder.Services.AddSingleton<IHttpContextAccessor, HttpContextAccessor>();
@@ -113,7 +114,49 @@ namespace ExpenseManagement.Api.IocConfig
                 option.User.RequireUniqueEmail = true;
                 //option.SignIn.RequireConfirmedEmail = true;
             });
+            builder.Services.AddSwaggerGen(c =>
+            {
+                c.SwaggerDoc("v1", new OpenApiInfo
+                {
+                    Title = "My API",
+                    Version = "v1"
+                });
+                c.AddSecurityDefinition("Bearer", new OpenApiSecurityScheme
+                {
+                    In = ParameterLocation.Header,
+                    Name = "JWT Authentication",
+                    Scheme = "bearer",
+                    BearerFormat = "JWT",
+                    Type = SecuritySchemeType.Http,
+                    Description = "Put **_ONLY_** your JWT Bearer token on textbox below!",
+                });
+                c.AddSecurityRequirement(new OpenApiSecurityRequirement {
+                {
+                 new OpenApiSecurityScheme
+                 {
+                   Reference = new OpenApiReference
+                   {
+                     Id = "Bearer",
+                     Type = ReferenceType.SecurityScheme,
+                   }
+                  },
+                  Array.Empty<string>()
+                }
+              });
+            });
 
+            //builder.Host.UseSerilog((hc, lc) =>
+            //{
+            //    lc.ReadFrom.Configuration(hc.Configuration)
+            //               .Enrich.FromLogContext()
+            //               .Enrich.WithProperty("ApplicationName", typeof(Program).Assembly.GetName().Name)
+            //               .Enrich.WithProperty("Environment", hc.HostingEnvironment);
+            //});
+
+            builder.Host.UseSerilog((ctx, lc) => lc
+                        .WriteTo.Console()
+                        .ReadFrom.Configuration(ctx.Configuration)
+                        .Enrich.FromLogContext());
 
             builder.Services.AddSingleton(builder.Configuration.GetSection(nameof(Authentication)).Get<Authentication>());
             builder.Services.AddSingleton(builder.Configuration.GetSection(nameof(Email)).Get<Email>());
