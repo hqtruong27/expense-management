@@ -229,6 +229,7 @@ namespace ExpenseManagement.Api.Data.Repositories
                     new Claim(ClaimTypes.Surname, user.Surname ?? string.Empty),
                     new Claim(ClaimTypes.GivenName, user.GivenName ?? string.Empty),
                 }),
+                TokenType = "Bearer",
                 Issuer = _authentication.JWT.ValidIssuer,
                 Audience = _authentication.JWT.ValidAudience,
                 Expires = DateTime.UtcNow.AddDays(_authentication.JWT.Expired),
