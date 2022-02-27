@@ -29,9 +29,11 @@ namespace ExpenseManagement.Api.IocConfig
                     .AddEntityFrameworkStores<ExpenseManagementDbcontext>()
                     .AddDefaultTokenProviders();
 
-            builder.Services.AddCors(option => option.AddPolicy("CorsPolicy", x => x.AllowAnyMethod()
+            builder.Services.AddCors(option => option.AddPolicy("CorsPolicy", x => x
+                                                     .AllowAnyMethod()
                                                      .AllowAnyHeader()
-                                                     .AllowAnyOrigin()));
+                                                     .AllowCredentials()
+                                                     .WithOrigins("https://localhost:5500")));
 
             builder.Services.AddAutoMapper(typeof(ServiceProfile).Assembly);
             builder.Services.AddHttpClient();
@@ -58,6 +60,7 @@ namespace ExpenseManagement.Api.IocConfig
                 options.RequireHttpsMetadata = false;
                 options.TokenValidationParameters = new TokenValidationParameters()
                 {
+                    LifetimeValidator = (before, expires, token, param) => expires > DateTime.UtcNow,
                     ValidateLifetime = true,
                     ValidateIssuer = true,
                     ValidateAudience = true,
@@ -66,6 +69,23 @@ namespace ExpenseManagement.Api.IocConfig
                     ValidIssuer = builder.Configuration["Authentication:JWT:ValidIssuer"],
                     IssuerSigningKey = new SymmetricSecurityKey(System.Text.Encoding.UTF8.GetBytes(builder.Configuration["Authentication:JWT:Secret"]))
                 };
+                options.Events = new JwtBearerEvents
+                {
+                    OnMessageReceived = context =>
+                    {
+                        var accessToken = context.Request.Query["access_token"];
+                        // If the request is for our hub...
+                        var path = context.HttpContext.Request.Path;
+                        if (!string.IsNullOrEmpty(accessToken) &&
+                            (path.StartsWithSegments("/chathub")))
+                        {
+                            // Read the token out of the query string
+                            context.Token = accessToken;
+                        }
+                        return Task.CompletedTask;
+                    }
+                };
+
             }).AddOpenIdConnect(options =>
             {
                 options.SignInScheme = JwtBearerDefaults.AuthenticationScheme;
