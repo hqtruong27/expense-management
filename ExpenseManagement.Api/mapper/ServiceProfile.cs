@@ -10,6 +10,7 @@ namespace ExpenseManagement.Api.mapper
         {
             CreateMap<CreateUserRequest, User>();
             CreateMap<UpdateUserRequest, User>();
+            CreateMap<User, UserResponse>();
             CreateMap<Expense, ExpenseResponse>();
             CreateMap<ExpenseCreateRequest, Expense>();
             CreateMap<ExpenseUpdateRequest, Expense>();
