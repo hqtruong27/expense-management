@@ -1,4 +1,6 @@
+using ExpenseManagement.Api.Hubs;
 using ExpenseManagement.Api.IocConfig;
+using Microsoft.AspNetCore.SignalR;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.OpenApi.Models;
 using Serilog;
@@ -11,16 +13,13 @@ builder.Services.AddControllers();
 // Learn more about configuring Swagger/OpenAPI at https://aka.ms/aspnetcore/swashbuckle
 builder.Services.AddEndpointsApiExplorer();
 
-
-
-
 builder.Register();
-
-
+builder.Services.AddSignalR();
+builder.Services.AddSingleton<IUserIdProvider, NameUserIdProvider>();
 
 var app = builder.Build();
 
-app.UseCorsExtensions();
+
 
 //Auto update migrations
 using (var scope = app.Services.CreateScope())
@@ -35,14 +34,22 @@ if (app.Environment.IsDevelopment())
     app.UseDeveloperExceptionPage();
 }
 
+app.UseCorsExtensions();
+
 app.UseSwaggerExtensions();
 
 app.UseSerilogRequestLogging();
 
 app.UseHttpsRedirection();
 
+app.UseRouting();
+
 app.UseAuthorization();
 
-app.MapControllers();
+app.UseEndpoints(endpoints =>
+{
+    endpoints.MapControllers();
+    endpoints.MapHub<ExpenseManagement.Api.Hubs.NotificationHub>("/chathub");
+});
 
 app.Run();
