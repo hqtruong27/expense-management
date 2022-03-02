@@ -1,19 +1,17 @@
-﻿using ExpenseManagement.Api.Model;
-
-namespace ExpenseManagement.Api.Middleware
+﻿namespace ExpenseManagement.Api.Middleware
 {
     public class ErrorHandlerMiddleware
     {
-        private readonly RequestDelegate _next;
         private readonly ILogger _logger;
+        private readonly RequestDelegate _next;
 
         public ErrorHandlerMiddleware(RequestDelegate next, ILogger<ErrorHandlerMiddleware> logger)
         {
-            _next = next;
             _logger = logger;
+            _next = next;
         }
 
-        public async Task Invoke(HttpContext context)
+        public async Task Invoke(HttpContext context, CancellationToken cancellationToken)
         {
             try
             {
@@ -26,7 +24,7 @@ namespace ExpenseManagement.Api.Middleware
 
                 switch (error)
                 {
-                    //case AppException e:
+                    //case BadRequestException e:
                     //    // custom application error
                     //    response.StatusCode = StatusCodes.Status400BadRequest;
                     //    break;
@@ -45,8 +43,8 @@ namespace ExpenseManagement.Api.Middleware
                         break;
                 }
 
-                var result = new ResponseResult(response.StatusCode, error?.Message ?? string.Empty);
-                await response.WriteAsJsonAsync(result);
+                var result = new Model.ResponseResult(response.StatusCode, error?.Message ?? string.Empty);
+                await response.WriteAsJsonAsync(result, cancellationToken);
             }
         }
     }
