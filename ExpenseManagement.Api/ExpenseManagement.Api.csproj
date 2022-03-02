@@ -8,11 +8,6 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <Content Include="wwwroot\.well-known\pki-validation\0E3EEBD312DBB7F99C3502AFF12B8807.txt" />
-    <Content Include="wwwroot\.well-known\pki-validation\56B6A0E4BADB014CA5B63308313744B0.txt" />
-  </ItemGroup>
-
-  <ItemGroup>
     <PackageReference Include="AutoMapper" Version="11.0.1" />
     <PackageReference Include="AutoMapper.Extensions.Microsoft.DependencyInjection" Version="11.0.0" />
     <PackageReference Include="EFCore.BulkExtensions" Version="6.4.0" />
@@ -53,6 +48,11 @@
       <Generator>ResXFileCodeGenerator</Generator>
       <LastGenOutput>Messages.Designer.cs</LastGenOutput>
     </EmbeddedResource>
+  </ItemGroup>
+
+  <ItemGroup>
+    <Folder Include="wwwroot\.well-known\pki-validation\" />
+    <Folder Include="wwwroot\Picture\" />
   </ItemGroup>
 
 </Project>
