@@ -4,16 +4,16 @@ namespace ExpenseManagement.Api.Data.Repositories.Generic
 {
     public abstract class GenericPersistentTrackedRepository<T> : GenericRepository<T> where T : class, ITrackedEntity, IPersistentEntity
     {
-        private readonly IHttpContextAccessor _httpContextAccessor;
+        private readonly HttpContext? _httpContext;
 
         protected GenericPersistentTrackedRepository(ExpenseManagementDbcontext dbContext, IHttpContextAccessor httpContextAccessor) : base(dbContext)
         {
-            _httpContextAccessor = httpContextAccessor;
+            _httpContext = httpContextAccessor.HttpContext;
         }
 
-        protected string CurrentUser => _httpContextAccessor.HttpContext?.User.Identity != null && _httpContextAccessor.HttpContext.User.Identity.IsAuthenticated
-                ? _httpContextAccessor.HttpContext.User.Identity.Name ?? string.Empty
-                : "Unknown";
+        protected string CurrentUser => _httpContext != null && _httpContext.User.Identity != null && _httpContext.User.Identity.IsAuthenticated
+                                     ? _httpContext.User.Identity.Name ?? string.Empty
+                                     : "Unknown";
 
         public async override Task<T?> AddAsync(T entity)
         {
@@ -22,8 +22,8 @@ namespace ExpenseManagement.Api.Data.Repositories.Generic
             {
                 entity.CreatedBy = CurrentUser;
             }
-            entity.LastUpdatedDate = DateTime.Now;
 
+            entity.LastUpdatedDate = DateTime.Now;
             if (string.IsNullOrEmpty(entity.LastUpdatedBy))
             {
                 entity.LastUpdatedBy = CurrentUser;
@@ -36,7 +36,11 @@ namespace ExpenseManagement.Api.Data.Repositories.Generic
         public async override Task UpdateAsync(T entity)
         {
             entity.LastUpdatedDate = DateTime.Now;
-            entity.LastUpdatedBy = CurrentUser;
+            if (string.IsNullOrEmpty(entity.LastUpdatedBy))
+            {
+                entity.LastUpdatedBy = CurrentUser;
+            }
+
             await base.UpdateAsync(entity);
         }
 
@@ -50,7 +54,14 @@ namespace ExpenseManagement.Api.Data.Repositories.Generic
 
         public override async Task BulkInsertAsync(IList<T> items)
         {
-            await base.BulkInsertAsync(items.Select(x => { x.LastUpdatedDate = DateTime.Now; x.LastUpdatedBy = CurrentUser; x.CreatedDate = DateTime.Now; x.CreatedBy = CurrentUser; return x; }).ToArray());
+            await base.BulkInsertAsync(items.Select(x =>
+            {
+                x.LastUpdatedDate = DateTime.Now;
+                x.LastUpdatedBy = CurrentUser;
+                x.CreatedDate = DateTime.Now;
+                x.CreatedBy = CurrentUser;
+                return x;
+            }).ToList());
         }
 
         public override async Task DeleteAsync(T entity)
@@ -71,10 +82,7 @@ namespace ExpenseManagement.Api.Data.Repositories.Generic
             if (items == null || !items.Any())
                 return;
 
-            await BulkUpdateAsync(items.Select(x =>
-            {
-                x.IsDeleted = true; x.DeletedAt = DateTime.Now; return x;
-            }).ToList());
+            await BulkUpdateAsync(items.Select(x => { x.IsDeleted = true; x.DeletedAt = DateTime.Now; return x; }).ToList());
         }
     }
 }
