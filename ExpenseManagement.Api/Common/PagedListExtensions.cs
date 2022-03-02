@@ -10,8 +10,8 @@ namespace ExpenseManagement.Api.Common
         private int _pageSize = 10;
         private const int _maxPageSize = 20;
 
-        public DateTime? From => string.IsNullOrEmpty(FromDate) ? null : DateTime.TryParse(FromDate, out var from) ? from : null;
-        public DateTime? To => string.IsNullOrEmpty(ToDate) ? null : DateTime.TryParse(ToDate, out var from) ? from : null;
+        internal DateTime? From => string.IsNullOrEmpty(FromDate) ? null : DateTime.TryParse(FromDate, out var from) ? from : null;
+        internal DateTime? To => string.IsNullOrEmpty(ToDate) ? null : DateTime.TryParse(ToDate, out var from) ? from : null;
         public int PageSize { get => _pageSize; set => _pageSize = value > _maxPageSize ? _maxPageSize : value; }
         public int PageNumber { get; set; } = 1;
         [FromQuery(Name = "from")]

@@ -126,10 +126,16 @@
   <data name="NotFound" xml:space="preserve">
     <value>Not found</value>
   </data>
+  <data name="NotImage" xml:space="preserve">
+    <value>Upload file is not an image</value>
+  </data>
   <data name="UpdateFailure" xml:space="preserve">
     <value>Update failure</value>
   </data>
   <data name="UpdateSuccess" xml:space="preserve">
     <value>Update success</value>
+  </data>
+  <data name="UploadSuccess" xml:space="preserve">
+    <value>Upload success</value>
   </data>
 </root>

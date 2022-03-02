@@ -88,6 +88,15 @@ namespace ExpenseManagement.Api.Common.Resources {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Upload file is not an image.
+        /// </summary>
+        internal static string NotImage {
+            get {
+                return ResourceManager.GetString("NotImage", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Update failure.
         /// </summary>
         internal static string UpdateFailure {
@@ -102,6 +111,15 @@ namespace ExpenseManagement.Api.Common.Resources {
         internal static string UpdateSuccess {
             get {
                 return ResourceManager.GetString("UpdateSuccess", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Upload success.
+        /// </summary>
+        internal static string UploadSuccess {
+            get {
+                return ResourceManager.GetString("UploadSuccess", resourceCulture);
             }
         }
     }
