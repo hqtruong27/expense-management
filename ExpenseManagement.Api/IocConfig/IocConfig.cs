@@ -8,10 +8,8 @@ using ExpenseManagement.Api.Model;
 using ExpenseManagement.Api.Options;
 using FluentValidation.AspNetCore;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
-using Microsoft.AspNetCore.Authentication.OpenIdConnect;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
-using Microsoft.Extensions.DependencyInjection.Extensions;
 using Microsoft.IdentityModel.Tokens;
 using Microsoft.OpenApi.Models;
 using Serilog;
@@ -45,6 +43,8 @@ namespace ExpenseManagement.Api.IocConfig
             builder.Services.AddScoped<IUserRepository, UserRepository>();
             builder.Services.AddScoped<IExpenseRepository, ExpenseRepository>();
             builder.Services.AddScoped<IUserExpenseRepository, UserExpenseRepository>();
+            builder.Services.AddScoped<IDebtChargeRepository, DebtChargeRepository>();
+            builder.Services.AddScoped<ITransactionHistoryRepository, TransactionHistoryRepository>();
 
             // Adding Authentication
             builder.Services.AddAuthentication(options =>
@@ -77,7 +77,7 @@ namespace ExpenseManagement.Api.IocConfig
                         // If the request is for our hub...
                         var path = context.HttpContext.Request.Path;
                         if (!string.IsNullOrEmpty(accessToken) &&
-                            (path.StartsWithSegments("/chathub")))
+                            (path.StartsWithSegments("/notificationhub") || path.StartsWithSegments("/chathub")))
                         {
                             // Read the token out of the query string
                             context.Token = accessToken;
@@ -86,27 +86,28 @@ namespace ExpenseManagement.Api.IocConfig
                     }
                 };
 
-            }).AddOpenIdConnect(options =>
-            {
-                options.SignInScheme = JwtBearerDefaults.AuthenticationScheme;
-                options.Authority = "<OpenID Connect server URL>";
-                options.RequireHttpsMetadata = true;
-                options.ClientId = "<OpenID Connect client ID>";
-                options.ClientSecret = "<>";
-                // Code with PKCE can also be used here
-                options.ResponseType = "code id_token";
-                options.Scope.Add("profile");
-                options.Scope.Add("offline_access");
-                options.SaveTokens = true;
-                options.Events = new OpenIdConnectEvents
-                {
-                    OnRedirectToIdentityProvider = context =>
-                    {
-                        context.ProtocolMessage.SetParameter("acr_values", "mfa");
-                        return Task.FromResult(0);
-                    }
-                };
             });
+            //.AddOpenIdConnect(options =>
+            //{
+            //    options.SignInScheme = JwtBearerDefaults.AuthenticationScheme;
+            //    options.Authority = "<OpenID Connect server URL>";
+            //    options.RequireHttpsMetadata = true;
+            //    options.ClientId = "<OpenID Connect client ID>";
+            //    options.ClientSecret = "<>";
+            //    // Code with PKCE can also be used here
+            //    options.ResponseType = "code id_token";
+            //    options.Scope.Add("profile");
+            //    options.Scope.Add("offline_access");
+            //    options.SaveTokens = true;
+            //    options.Events = new OpenIdConnectEvents
+            //    {
+            //        OnRedirectToIdentityProvider = context =>
+            //        {
+            //            context.ProtocolMessage.SetParameter("acr_values", "mfa");
+            //            return Task.FromResult(0);
+            //        }
+            //    };
+            //});
 
             builder.Services.AddScoped<IUserClaimsPrincipalFactory<User>, AdditionalUserClaimsPrincipalFactory>();
 
@@ -174,7 +175,6 @@ namespace ExpenseManagement.Api.IocConfig
             //});
 
             builder.Host.UseSerilog((ctx, lc) => lc
-                        .WriteTo.Console()
                         .ReadFrom.Configuration(ctx.Configuration)
                         .Enrich.FromLogContext());
 
