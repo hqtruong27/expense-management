@@ -1,5 +1,6 @@
 using ExpenseManagement.Api.Hubs;
 using ExpenseManagement.Api.IocConfig;
+using ExpenseManagement.Api.Middleware;
 using Microsoft.AspNetCore.SignalR;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.OpenApi.Models;
@@ -32,24 +33,30 @@ using (var scope = app.Services.CreateScope())
 if (app.Environment.IsDevelopment())
 {
     app.UseDeveloperExceptionPage();
+    app.UseHsts();
 }
 
-app.UseCorsExtensions();
 
 app.UseSwaggerExtensions();
 
 app.UseSerilogRequestLogging();
 
 app.UseHttpsRedirection();
+app.UseStaticFiles();
 
 app.UseRouting();
+app.UseCorsExtensions();
+ // global error handler
+app.UseMiddleware<ErrorHandlerMiddleware>();
 
+app.UseAuthentication();
 app.UseAuthorization();
 
 app.UseEndpoints(endpoints =>
 {
     endpoints.MapControllers();
-    endpoints.MapHub<ExpenseManagement.Api.Hubs.NotificationHub>("/chathub");
+    endpoints.MapHub<ExpenseManagement.Api.Hubs.NotificationHub>("/notificationhub");
+    endpoints.MapHub<ExpenseManagement.Api.Hubs.ChatHub>("/chathub");
 });
 
 app.Run();
