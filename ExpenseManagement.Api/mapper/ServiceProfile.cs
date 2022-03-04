@@ -14,6 +14,7 @@ namespace ExpenseManagement.Api.mapper
             CreateMap<Expense, ExpenseResponse>();
             CreateMap<ExpenseCreateRequest, Expense>();
             CreateMap<ExpenseUpdateRequest, Expense>();
+            CreateMap<DebtCharge, DebtChargeResponse>();
         }
     }
 }

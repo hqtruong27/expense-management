@@ -174,9 +174,21 @@ namespace ExpenseManagement.Api.IocConfig
             //               .Enrich.WithProperty("Environment", hc.HostingEnvironment);
             //});
 
+            var configuration = builder.Configuration
+                                       .SetBasePath(Directory.GetCurrentDirectory())
+                                       .AddJsonFile("appsettings.json", optional: false, reloadOnChange: true)
+                                       .AddJsonFile($"appsettings.{Environment.GetEnvironmentVariable("ASPNETCORE_ENVIRONMENT") ?? Environments.Production}.json", optional: true)
+                                       .Build();
+
             builder.Host.UseSerilog((ctx, lc) => lc
-                        .ReadFrom.Configuration(ctx.Configuration)
+                        .ReadFrom.Configuration(configuration)
                         .Enrich.FromLogContext());
+
+            //Serilog.Debugging.SelfLog.Enable(msg =>
+            //{
+            //    Debug.Print(msg);
+            //    Debugger.Break();
+            //});
 
             builder.Services.AddSingleton(builder.Configuration.GetSection(nameof(Authentication)).Get<Authentication>());
             builder.Services.AddSingleton(builder.Configuration.GetSection(nameof(Email)).Get<Email>());

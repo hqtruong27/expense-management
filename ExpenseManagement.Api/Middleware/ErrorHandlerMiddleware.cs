@@ -11,7 +11,7 @@
             _next = next;
         }
 
-        public async Task Invoke(HttpContext context, CancellationToken cancellationToken)
+        public async Task Invoke(HttpContext context)
         {
             try
             {
@@ -44,7 +44,7 @@
                 }
 
                 var result = new Model.ResponseResult(response.StatusCode, error?.Message ?? string.Empty);
-                await response.WriteAsJsonAsync(result, cancellationToken);
+                await response.WriteAsJsonAsync(result, new CancellationTokenSource().Token);
             }
         }
     }
