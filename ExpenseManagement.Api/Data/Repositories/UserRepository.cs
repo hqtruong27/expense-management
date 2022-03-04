@@ -1,5 +1,4 @@
-﻿using ExpenseManagement.Api.Data;
-using ExpenseManagement.Api.Data.Models;
+﻿using ExpenseManagement.Api.Data.Models;
 using ExpenseManagement.Api.Data.Repositories.Generic;
 using ExpenseManagement.Api.Enum;
 using ExpenseManagement.Api.Infrastructure;
@@ -20,6 +19,7 @@ namespace ExpenseManagement.Api.Data.Repositories
         Task<User> FindByEmailAsync(string email);
         Task<string> GeneratePasswordResetTokenAsync(User user);
         Task<string> GetTokenAsync(User user);
+        Task<User> GetLoginInfoAsync();
         Task<IdentityResult> ResetPasswordAsync(User user, string code, string password);
     }
     public class UserRepository : GenericPersistentTrackedRepository<User>, IUserRepository
@@ -137,6 +137,7 @@ namespace ExpenseManagement.Api.Data.Repositories
 
             var result = await _signInManager.ExternalLoginSignInAsync(provider.ToString(), providerKey, false);
             if (result.Succeeded)
+            {
                 if (user == null)
                 {
                     user = await _userManager.FindByEmailAsync(email);
@@ -150,11 +151,14 @@ namespace ExpenseManagement.Api.Data.Repositories
                             Surname = surname,
                             GivenName = givenName,
                             EmailConfirmed = emailVerified,
+                            CreatedDate = DateTime.Now,
+                            LastLogin = DateTime.Now,
                         };
 
                         await _userManager.CreateAsync(user);
                         //prepare and send an email for the email confirmation
                         //await _userManager.AddToRoleAsync(user, "Viewer");
+                        await _userManager.AddLoginAsync(user, info);
                     }
                     else
                     {
@@ -176,25 +180,25 @@ namespace ExpenseManagement.Api.Data.Repositories
 
                         await _userManager.UpdateAsync(user);
                     }
-
-                    await _userManager.AddLoginAsync(user, info);
-
-                    //TODO: check for the Locked out account
-                    //logic code here...
-
-                    var (accessToken, validTo) = await GenerateJwtTokenAsync(user);
-
-                    _logger.LogInformation("END: success exteral login {provider}", provider);
-                    return new JwtTokenResponse
-                    {
-                        IsAuthenticated = true,
-                        FullName = $"{user.Surname} {user.GivenName}",
-                        Token = accessToken,
-                        Email = user.Email,
-                        Avatar = user.Avatar,
-                        ValidTo = validTo,
-                    };
                 }
+
+                var (accessToken, validTo) = await GenerateJwtTokenAsync(user);
+
+                _logger.LogInformation("END: success exteral login {provider}", provider);
+                return new JwtTokenResponse
+                {
+                    IsAuthenticated = true,
+                    FullName = $"{user.Surname} {user.GivenName}",
+                    Token = accessToken,
+                    Email = user.Email,
+                    Avatar = user.Avatar,
+                    ValidTo = validTo,
+                };
+            }
+
+            //TODO: check for the Locked out account
+            //logic code here...
+
             if (result.RequiresTwoFactor)
             {
                 _logger.LogWarning("User required 2fa.");
@@ -229,7 +233,7 @@ namespace ExpenseManagement.Api.Data.Repositories
                     new Claim(ClaimTypes.Surname, user.Surname ?? string.Empty),
                     new Claim(ClaimTypes.GivenName, user.GivenName ?? string.Empty),
                 }),
-                TokenType = "Bearer",
+                TokenType = Microsoft.AspNetCore.Authentication.JwtBearer.JwtBearerDefaults.AuthenticationScheme,
                 Issuer = _authentication.JWT.ValidIssuer,
                 Audience = _authentication.JWT.ValidAudience,
                 Expires = DateTime.UtcNow.AddDays(_authentication.JWT.Expired),
@@ -258,6 +262,11 @@ namespace ExpenseManagement.Api.Data.Repositories
         public Task<string> GeneratePasswordResetTokenAsync(User user)
         {
             return _userManager.GeneratePasswordResetTokenAsync(user);
+        }
+
+        public async Task<User> GetLoginInfoAsync()
+        {
+            return await _userManager.FindByNameAsync(_signInManager.Context?.User.Identity?.Name);
         }
     }
 }
