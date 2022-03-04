@@ -25,30 +25,26 @@ namespace ExpenseManagement.Api.Controllers
         public async Task<IActionResult> Authenticate([FromBody] AuthenticateRequest request)
         {
             var result = await _userRepository.AuthenticateAsync(request.Username, request.Password);
-            if (result.IsAuthenticated)
-            {
-                return Ok(new ResponseResult { Items = result });
-            }
 
-            return Unauthorized(new ResponseResult(StatusCodes.Status401Unauthorized)
-            {
-                Description = result.Description,
-            });
+            return result.IsAuthenticated
+                         ? Ok(new ResponseResult { Items = result })
+                         : Unauthorized(new ResponseResult(StatusCodes.Status401Unauthorized)
+                         {
+                             Description = result.Description,
+                         });
         }
 
         [HttpPost("ExternalLogin")]
         public async Task<IActionResult> ExternalLogin([FromBody] ExternalLoginRequest request)
         {
             var result = await _userRepository.ExternalLoginAsync(request);
-            if (result.IsAuthenticated)
-            {
-                return Ok(result);
-            }
 
-            return Unauthorized(new ResponseResult(StatusCodes.Status401Unauthorized)
-            {
-                Description = result.Description,
-            });
+            return result.IsAuthenticated
+                         ? Ok(new ResponseResult(result))
+                         : Unauthorized(new ResponseResult(StatusCodes.Status401Unauthorized)
+                         {
+                             Description = result.Description,
+                         });
         }
 
         [HttpPost("ForgotPassword")]

@@ -8,7 +8,7 @@ namespace ExpenseManagement.Api.Controllers
     [Route("api/[controller]")]
     [ApiController]
     [Authorize(AuthenticationSchemes = JwtBearerDefaults.AuthenticationScheme)]
-    public class BaseController : ControllerBase
+    public class BaseController : TrackedController
     {
         protected string Id => HttpContext.User.Claims.First(x => x.Type == ClaimTypes.NameIdentifier).Value;
         protected string UserName => HttpContext.User.Identity != null ? HttpContext.User.Identity.Name ?? string.Empty : string.Empty;
