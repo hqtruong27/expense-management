@@ -7,6 +7,8 @@ namespace ExpenseManagement.Api.Enum
         [Display(Name = "Chưa trả")]
         Unpaid,
         [Display(Name = "Đã trả")]
-        Paid
+        Paid,
+        [Display(Name = "Đã quỵt")]
+        Stealed
     }
 }
