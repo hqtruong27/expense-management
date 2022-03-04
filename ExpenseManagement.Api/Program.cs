@@ -20,8 +20,6 @@ builder.Services.AddSingleton<IUserIdProvider, NameUserIdProvider>();
 
 var app = builder.Build();
 
-
-
 //Auto update migrations
 using (var scope = app.Services.CreateScope())
 {
@@ -46,7 +44,7 @@ app.UseStaticFiles();
 
 app.UseRouting();
 app.UseCorsExtensions();
- // global error handler
+// global error handler
 app.UseMiddleware<ErrorHandlerMiddleware>();
 
 app.UseAuthentication();
