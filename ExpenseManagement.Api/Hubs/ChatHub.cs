@@ -18,5 +18,10 @@ namespace ExpenseManagement.Api.Hubs
         {
             await Clients.All.SendAsync("ReceiveMessage", user, message);
         }
+
+        //public async Task UsersOnline()
+        //{
+        //    var context = Context.User.
+        //}
     }
 }
