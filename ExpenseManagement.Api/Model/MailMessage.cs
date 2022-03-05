@@ -3,13 +3,23 @@ using MimeKit.Text;
 
 namespace ExpenseManagement.Api.Model
 {
-    public class Message
+    public class MailMessage
     {
         public List<MailboxAddress> To { get; set; }
         public string Subject { get; set; }
         public string Content { get; set; }
         public TextFormat TextFormat { get; set; }
-        public Message(IEnumerable<string> to, string subject, string content, TextFormat? textFormat = null)
+        public MailMessage(string to, string subject, string content, TextFormat? textFormat = null)
+        {
+            To = new List<MailboxAddress>
+            {
+                MailboxAddress.Parse(to)
+            };
+            Subject = subject;
+            Content = content;
+            TextFormat = textFormat ?? TextFormat.Text;
+        }
+        public MailMessage(IEnumerable<string> to, string subject, string content, TextFormat? textFormat = null)
         {
             To = new List<MailboxAddress>();
             To.AddRange(to.Select(x => MailboxAddress.Parse(x)));
