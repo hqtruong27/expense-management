@@ -1,37 +1,48 @@
 ﻿using ExpenseManagement.Api.Data;
 using ExpenseManagement.Api.Data.Models;
 using ExpenseManagement.Api.Data.Repositories;
+using ExpenseManagement.Api.Hubs;
 using ExpenseManagement.Api.Infrastructure;
 using ExpenseManagement.Api.mapper;
 using ExpenseManagement.Api.Mfa;
 using ExpenseManagement.Api.Model;
 using ExpenseManagement.Api.Options;
 using FluentValidation.AspNetCore;
+using Hangfire;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Identity;
+using Microsoft.AspNetCore.SignalR;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
 using Microsoft.OpenApi.Models;
 using Serilog;
+using System.Text.Json.Serialization;
 
 namespace ExpenseManagement.Api.IocConfig
 {
     public static class IocConfig
     {
-        public static void Register(this WebApplicationBuilder builder)
+        private static readonly string _corsPolicy = "CorsPolicy";
+        public static WebApplicationBuilder Register(this WebApplicationBuilder builder)
         {
+            // Add services to the container.
+
+            builder.Services.AddControllers();
+            // Learn more about configuring Swagger/OpenAPI at https://aka.ms/aspnetcore/swashbuckle
+            builder.Services.AddEndpointsApiExplorer();
+
+            var connecttionString = builder.Configuration.GetConnectionString("ExpenseManagementDbcontext");
             builder.Services.AddDbContextPool<ExpenseManagementDbcontext>(options =>
-                    options.UseSqlServer(builder.Configuration.GetConnectionString("ExpenseManagementDbcontext")));
+                     options.UseSqlServer(connecttionString));
+
             // Identity services
             builder.Services.AddIdentity<User, Role>()
-                    .AddEntityFrameworkStores<ExpenseManagementDbcontext>()
-                    .AddDefaultTokenProviders();
+                            .AddEntityFrameworkStores<ExpenseManagementDbcontext>()
+                            .AddDefaultTokenProviders();
 
-            builder.Services.AddCors(option => option.AddPolicy("CorsPolicy", x => x
-                                                     .AllowAnyMethod()
-                                                     .AllowAnyHeader()
-                                                     .AllowCredentials()
-                                                     .WithOrigins("https://localhost:5500")));
+            builder.Services.AddSignalR();
+            builder.Services.AddHangfire(c => c.UseSqlServerStorage(connecttionString));
+            builder.Services.AddHangfireServer();
 
             builder.Services.AddAutoMapper(typeof(ServiceProfile).Assembly);
             builder.Services.AddHttpClient();
@@ -39,12 +50,24 @@ namespace ExpenseManagement.Api.IocConfig
             builder.Services.AddSingleton<IHttpContextAccessor, HttpContextAccessor>();
             builder.Services.AddSingleton<IFacebookService, FacebookService>();
             builder.Services.AddSingleton<IGoogleService, GoogleService>();
+            builder.Services.AddSingleton<IUserIdProvider, NameUserIdProvider>();
             builder.Services.AddScoped<IEmailService, EmailService>();
             builder.Services.AddScoped<IUserRepository, UserRepository>();
             builder.Services.AddScoped<IExpenseRepository, ExpenseRepository>();
             builder.Services.AddScoped<IUserExpenseRepository, UserExpenseRepository>();
             builder.Services.AddScoped<IDebtChargeRepository, DebtChargeRepository>();
+            builder.Services.AddScoped<IDebtReminderRepository, DebtReminderRepository>();
             builder.Services.AddScoped<ITransactionHistoryRepository, TransactionHistoryRepository>();
+            builder.Services.AddScoped<ITransactionHistoryRepository, TransactionHistoryRepository>();
+            builder.Services.AddScoped<IUserClaimsPrincipalFactory<User>, AdditionalUserClaimsPrincipalFactory>();
+
+            var e = builder.Configuration["AllowedHosts"];
+            // Add cors extensions
+            builder.Services.AddCors(option => option.AddPolicy(_corsPolicy, x => x
+                                                     .AllowAnyMethod()
+                                                     .AllowAnyHeader()
+                                                     .AllowCredentials()
+                                                     .WithOrigins(builder.Configuration["AllowedHosts"])));
 
             // Adding Authentication
             builder.Services.AddAuthentication(options =>
@@ -53,7 +76,6 @@ namespace ExpenseManagement.Api.IocConfig
                 options.DefaultChallengeScheme = JwtBearerDefaults.AuthenticationScheme;
                 options.DefaultScheme = JwtBearerDefaults.AuthenticationScheme;
             })
-            // Adding Jwt Bearer
             .AddJwtBearer(options =>
             {
                 options.SaveToken = true;
@@ -82,6 +104,7 @@ namespace ExpenseManagement.Api.IocConfig
                             // Read the token out of the query string
                             context.Token = accessToken;
                         }
+
                         return Task.CompletedTask;
                     }
                 };
@@ -109,8 +132,6 @@ namespace ExpenseManagement.Api.IocConfig
             //    };
             //});
 
-            builder.Services.AddScoped<IUserClaimsPrincipalFactory<User>, AdditionalUserClaimsPrincipalFactory>();
-
             builder.Services.AddAuthorization(options => options.AddPolicy("TwoFactorEnabled", x => x.RequireClaim("amr", "mfa")));
 
             builder.Services.Configure<Microsoft.AspNetCore.Mvc.ApiBehaviorOptions>(options => options.SuppressModelStateInvalidFilter = true);
@@ -124,7 +145,7 @@ namespace ExpenseManagement.Api.IocConfig
                 fv.RegisterValidatorsFromAssemblyContaining<CreateUserRequest>();
             }).AddJsonOptions(opt =>
             {
-                opt.JsonSerializerOptions.Converters.Add(new System.Text.Json.Serialization.JsonStringEnumConverter());
+                opt.JsonSerializerOptions.Converters.Add(new JsonStringEnumConverter());
             });
 
             builder.Services.Configure<IdentityOptions>(option =>
@@ -139,8 +160,14 @@ namespace ExpenseManagement.Api.IocConfig
             {
                 c.SwaggerDoc("v1", new OpenApiInfo
                 {
-                    Title = "My API",
-                    Version = "v1"
+                    Title = "Expense Management Api",
+                    Version = "v1",
+                    Description = "This is spending management api",
+                    Contact = new OpenApiContact
+                    {
+                        Email = "hqtruong27@gmail.com",
+                        Name = "Truong Hoang",
+                    }
                 });
                 c.AddSecurityDefinition("Bearer", new OpenApiSecurityScheme
                 {
@@ -160,19 +187,10 @@ namespace ExpenseManagement.Api.IocConfig
                      Id = "Bearer",
                      Type = ReferenceType.SecurityScheme,
                    }
-                  },
-                  Array.Empty<string>()
+                  }, Array.Empty<string>()
                 }
               });
             });
-
-            //builder.Host.UseSerilog((hc, lc) =>
-            //{
-            //    lc.ReadFrom.Configuration(hc.Configuration)
-            //               .Enrich.FromLogContext()
-            //               .Enrich.WithProperty("ApplicationName", typeof(Program).Assembly.GetName().Name)
-            //               .Enrich.WithProperty("Environment", hc.HostingEnvironment);
-            //});
 
             var configuration = builder.Configuration
                                        .SetBasePath(Directory.GetCurrentDirectory())
@@ -190,8 +208,10 @@ namespace ExpenseManagement.Api.IocConfig
             //    Debugger.Break();
             //});
 
-            builder.Services.AddSingleton(builder.Configuration.GetSection(nameof(Authentication)).Get<Authentication>());
             builder.Services.AddSingleton(builder.Configuration.GetSection(nameof(Email)).Get<Email>());
+            builder.Services.AddSingleton(builder.Configuration.GetSection(nameof(Authentication)).Get<Authentication>());
+
+            return builder;
         }
 
         public static IApplicationBuilder UseCorsExtensions(this WebApplication app)
@@ -199,12 +219,10 @@ namespace ExpenseManagement.Api.IocConfig
             // configure HTTP request pipeline
             {
                 // global cors policy
-                app.UseCors("CorsPolicy");
+                app.UseCors(_corsPolicy);
 
                 // custom jwt auth middleware
                 //app.UseMiddleware<JwtMiddleware>();
-
-                //app.MapControllers();
 
                 return app;
             }
@@ -215,7 +233,7 @@ namespace ExpenseManagement.Api.IocConfig
             app.UseSwagger();
             app.UseSwaggerUI(c =>
             {
-                c.SwaggerEndpoint("/swagger/v1/swagger.json", "My API V1");
+                c.SwaggerEndpoint("/swagger/v1/swagger.json", "Expense Management Api");
                 c.RoutePrefix = "";
             });
 
