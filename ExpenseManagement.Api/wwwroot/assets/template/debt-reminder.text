@@ -1,0 +1,106 @@
+﻿ <style type="text/css">
+body {
+    text-align: center;
+    margin: 0 auto;
+    width: 650px;
+    font-family: work-Sans, sans-serif;
+    background-color: #f6f7fb;
+    display: block;
+}
+
+ul {
+    margin: 0;
+    padding: 0;
+}
+
+li {
+    display: inline-block;
+    text-decoration: unset;
+}
+
+a {
+    text-decoration: none;
+}
+
+p {
+    margin: 15px 0;
+}
+
+h5 {
+    color: #444;
+    text-align: left;
+    font-weight: 400;
+}
+
+.text-center {
+    text-align: center
+}
+
+.main-bg-light {
+    background-color: #fafafa;
+    box-shadow: 0px 0px 14px -4px rgba(0, 0, 0, 0.2705882353);
+}
+
+.title {
+    color: #444444;
+    font-size: 22px;
+    font-weight: bold;
+    margin-top: 10px;
+    margin-bottom: 10px;
+    padding-bottom: 0;
+    text-transform: uppercase;
+    display: inline-block;
+    line-height: 1;
+}
+
+table {
+    margin-top: 30px
+}
+
+    table.top-0 {
+        margin-top: 0;
+    }
+
+    table.order-detail {
+        border: 1px solid #ddd;
+        border-collapse: collapse;
+    }
+
+        table.order-detail tr:nth-child(even) {
+            border-top: 1px solid #ddd;
+            border-bottom: 1px solid #ddd;
+        }
+
+        table.order-detail tr:nth-child(odd) {
+            border-bottom: 1px solid #ddd;
+        }
+
+.pad-left-right-space {
+    border: unset !important;
+}
+
+    .pad-left-right-space td {
+        padding: 5px 15px;
+    }
+
+        .pad-left-right-space td p {
+            margin: 0;
+        }
+
+        .pad-left-right-space td b {
+            font-size: 15px;
+            font-family: 'Roboto', sans-serif;
+        }
+
+.order-detail th {
+    font-size: 16px;
+    padding: 15px;
+    text-align: center;
+    background: #fafafa;
+}
+
+.footer-social-icon tr td img {
+    margin-left: 5px;
+    margin-right: 5px;
+}
+</style>
