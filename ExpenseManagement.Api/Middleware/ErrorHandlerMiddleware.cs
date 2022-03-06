@@ -37,7 +37,6 @@
                         response.StatusCode = 499;
                         break;
                     default:
-                        // unhandled error
                         _logger.LogError(error, "System Error");
                         response.StatusCode = StatusCodes.Status500InternalServerError;
                         break;
@@ -46,6 +45,16 @@
                 var result = new Model.ResponseResult(response.StatusCode, error?.Message ?? string.Empty);
                 await response.WriteAsJsonAsync(result, new CancellationTokenSource().Token);
             }
+        }
+
+
+    }
+
+    public static class ErrorHandlerMiddlewareExtensions
+    {
+        public static void UseErrorHandlerMiddleware(this IApplicationBuilder app)
+        {
+            app.UseMiddleware<ErrorHandlerMiddleware>();
         }
     }
 }
