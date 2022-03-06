@@ -1,22 +1,12 @@
-using ExpenseManagement.Api.Hubs;
 using ExpenseManagement.Api.IocConfig;
 using ExpenseManagement.Api.Middleware;
-using Microsoft.AspNetCore.SignalR;
+using Hangfire;
 using Microsoft.EntityFrameworkCore;
-using Microsoft.OpenApi.Models;
 using Serilog;
 
 var builder = WebApplication.CreateBuilder(args);
 
-// Add services to the container.
-
-builder.Services.AddControllers();
-// Learn more about configuring Swagger/OpenAPI at https://aka.ms/aspnetcore/swashbuckle
-builder.Services.AddEndpointsApiExplorer();
-
 builder.Register();
-builder.Services.AddSignalR();
-builder.Services.AddSingleton<IUserIdProvider, NameUserIdProvider>();
 
 var app = builder.Build();
 
@@ -31,9 +21,11 @@ using (var scope = app.Services.CreateScope())
 if (app.Environment.IsDevelopment())
 {
     app.UseDeveloperExceptionPage();
+}
+else
+{
     app.UseHsts();
 }
-
 
 app.UseSwaggerExtensions();
 
@@ -50,11 +42,14 @@ app.UseMiddleware<ErrorHandlerMiddleware>();
 app.UseAuthentication();
 app.UseAuthorization();
 
+
 app.UseEndpoints(endpoints =>
 {
     endpoints.MapControllers();
+    endpoints.MapHangfireDashboard("/hangfire");
     endpoints.MapHub<ExpenseManagement.Api.Hubs.NotificationHub>("/notificationhub");
     endpoints.MapHub<ExpenseManagement.Api.Hubs.ChatHub>("/chathub");
 });
 
+Task.Run(() => ExpenseManagement.Api.Start.Start.HangfireJobScheduler());
 app.Run();
