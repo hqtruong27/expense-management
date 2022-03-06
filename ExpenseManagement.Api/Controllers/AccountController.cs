@@ -50,7 +50,7 @@ namespace ExpenseManagement.Api.Controllers
         [HttpPost("ForgotPassword")]
         public async Task<IActionResult> ForgotPassword([FromServices] Email email)
         {
-            await _emailService.SendAsync(new Message(email.ToDefault.Split(','), email.Subject, string.Format(email.Body, DateTime.Now.AddDays(10))));
+            await _emailService.SendAsync(new MailMessage(email.ToDefault.Split(','), email.Subject, string.Format(email.Body, DateTime.Now.AddDays(10))));
             //var user = await _userRepository.FindByEmailAsync("");
             //if (user == null || !user.EmailConfirmed)
             //{
