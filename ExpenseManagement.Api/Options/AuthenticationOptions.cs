@@ -9,11 +9,13 @@ namespace ExpenseManagement.Api.Options
             Google = new OAuthOptions();
             Facebook = new FacebookOptions();
             JWT = new JwtOptions();
+            Twilio = new TwilioOptions();
         }
 
         public OAuthOptions Google { get; set; }
         public FacebookOptions Facebook { get; set; }
         public JwtOptions JWT { get; set; }
+        public TwilioOptions Twilio { get; set; }
     }
 
     public class JwtOptions
