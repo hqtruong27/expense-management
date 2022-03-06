@@ -50,6 +50,7 @@ namespace ExpenseManagement.Api.IocConfig
             builder.Services.AddSingleton<IHttpContextAccessor, HttpContextAccessor>();
             builder.Services.AddSingleton<IFacebookService, FacebookService>();
             builder.Services.AddSingleton<IGoogleService, GoogleService>();
+            builder.Services.AddSingleton<ISmsService, SmsService>();
             builder.Services.AddSingleton<IUserIdProvider, NameUserIdProvider>();
             builder.Services.AddScoped<IEmailService, EmailService>();
             builder.Services.AddScoped<IUserRepository, UserRepository>();
@@ -60,14 +61,14 @@ namespace ExpenseManagement.Api.IocConfig
             builder.Services.AddScoped<ITransactionHistoryRepository, TransactionHistoryRepository>();
             builder.Services.AddScoped<ITransactionHistoryRepository, TransactionHistoryRepository>();
             builder.Services.AddScoped<IUserClaimsPrincipalFactory<User>, AdditionalUserClaimsPrincipalFactory>();
+            builder.Services.AddScoped<IHangfireService, HangfireService>();
 
-            var e = builder.Configuration["AllowedHosts"];
             // Add cors extensions
             builder.Services.AddCors(option => option.AddPolicy(_corsPolicy, x => x
                                                      .AllowAnyMethod()
                                                      .AllowAnyHeader()
                                                      .AllowCredentials()
-                                                     .WithOrigins(builder.Configuration["AllowedHosts"])));
+                                                     .WithOrigins(builder.Configuration["AllowedOrigins"])));
 
             // Adding Authentication
             builder.Services.AddAuthentication(options =>
@@ -209,6 +210,7 @@ namespace ExpenseManagement.Api.IocConfig
             //});
 
             builder.Services.AddSingleton(builder.Configuration.GetSection(nameof(Email)).Get<Email>());
+            builder.Services.AddSingleton(builder.Configuration.GetSection(nameof(Template)).Get<Template>());
             builder.Services.AddSingleton(builder.Configuration.GetSection(nameof(Authentication)).Get<Authentication>());
 
             return builder;

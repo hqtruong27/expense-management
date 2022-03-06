@@ -33,7 +33,7 @@ namespace ExpenseManagement.Api.Model.Validator
                               select new IdentityError
                               {
                                   Code = item.Split(".").LastOrDefault(),
-                                  Description = model.Errors.First()?.ErrorMessage
+                                  Description = model.Errors.FirstOrDefault()?.ErrorMessage
                               }).ToArray();
 
                 context.Result = new BadRequestObjectResult(IdentityResult.Failed(errors));
