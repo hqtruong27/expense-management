@@ -1,4 +1,5 @@
-﻿using ExpenseManagement.Api.Infrastructure;
+﻿using ExpenseManagement.Api.Data;
+using ExpenseManagement.Api.Infrastructure;
 using Hangfire;
 using Microsoft.EntityFrameworkCore;
 
@@ -8,34 +9,34 @@ namespace ExpenseManagement.Api.Start
     {
         //private readonly IBackgroundJobClient _backgroundJobClient;
         //private readonly IRecurringJobManager _recurringJobManager;
+        //private readonly ExpenseManagementDbcontext _context;
 
-        //public HangfireJobScheduler(IRecurringJobManager recurringJobManager)
+        //public Start(ExpenseManagementDbcontext context)
         //{
-        //    _recurringJobManager = recurringJobManager;
-
+        //    _context = context;
         //}
-        public static void Yield(WebApplication app)
+        public static async Task Yield(WebApplication app)
         {
             if (app.Configuration.GetValue<bool>("Hangfire:Activate"))
             {
                 HangfireJobScheduler();
             }
 
-            Migrate(app);
+            await MigrateAsync(app);
         }
 
         private static void HangfireJobScheduler()
         {
             RecurringJob.AddOrUpdate<IHangfireService>("DebtReminderAsync", x => x.DebtReminderAsync(), Cron.Daily(0));
-            RecurringJob.AddOrUpdate<IHangfireService>("RetestReminderAsync", x => x.RetestReminderAsync(), Cron.Daily(12));
+            RecurringJob.AddOrUpdate<IHangfireService>("RetestReminderAsync", x => x.RetestReminderAsync(), "0 */3 * * *");
         }
 
-        private static void Migrate(WebApplication app)
+        private static async Task MigrateAsync(WebApplication app)
         {
             //Auto update migrations
             using var scope = app.Services.CreateScope();
-            var db = scope.ServiceProvider.GetRequiredService<ExpenseManagement.Api.Data.ExpenseManagementDbcontext>();
-            db.Database.Migrate();
+            var _context = scope.ServiceProvider.GetRequiredService<ExpenseManagementDbcontext>();
+            await _context.Database.MigrateAsync();
         }
     }
 }
