@@ -54,6 +54,6 @@ app.UseEndpoints(endpoints =>
     endpoints.MapHub<ExpenseManagement.Api.Hubs.ChatHub>("/chathub");
 });
 
-Task.Run(() => ExpenseManagement.Api.Start.Start.Yield(app));
+Task.Run(async () => await ExpenseManagement.Api.Start.Start.Yield(app));
 
 app.Run();
