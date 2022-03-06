@@ -100,7 +100,8 @@ namespace ExpenseManagement.Api.IocConfig
                         // If the request is for our hub...
                         var path = context.HttpContext.Request.Path;
                         if (!string.IsNullOrEmpty(accessToken) &&
-                            (path.StartsWithSegments("/notificationhub") || path.StartsWithSegments("/chathub")))
+                            (path.StartsWithSegments("/notificationhub") || path.StartsWithSegments("/chathub")
+                            || path.StartsWithSegments("/hangfire")))
                         {
                             // Read the token out of the query string
                             context.Token = accessToken;
