@@ -1,26 +1,9 @@
 ﻿using EFCore.BulkExtensions;
-using ExpenseManagement.Api.Data;
 using Microsoft.EntityFrameworkCore;
 using System.Linq.Expressions;
 
 namespace ExpenseManagement.Api.Data.Repositories.Generic
 {
-    public interface IRepository<T>
-    {
-        Task<IQueryable<T>> GetAll(string? include = default);
-        Task<IQueryable<T>> FindBy(Expression<Func<T, bool>> predicate, string? include = default);
-        IQueryable<T> Where(Expression<Func<T, bool>> predicate, string? include = default);
-        Task<T?> FirstOrDefaultAsync(Expression<Func<T, bool>> expression, string? include = default);
-        Task<T?> SingleOrDefaultAsync(Expression<Func<T, bool>> expression, string? include = default);
-        Task<T?> AddAsync(T entity);
-        Task DeleteAsync(T entity);
-        void Update(T entity);
-        Task UpdateAsync(T entity);
-        Task BulkInsertAsync(IList<T> items);
-        Task BulkDeleteAsync(IList<T> items);
-        Task BulkUpdateAsync(IList<T> items);
-    }
-
     public abstract class GenericRepository<T> : IRepository<T> where T : class
     {
         private readonly ExpenseManagementDbcontext _context;
@@ -30,30 +13,28 @@ namespace ExpenseManagement.Api.Data.Repositories.Generic
             _context = dbContext;
         }
 
-        public async virtual Task<T?> AddAsync(T entity)
+        public virtual Task<bool> AnyAsync(Expression<Func<T, bool>> predicate, CancellationToken cancellationToken = default)
+        {
+            return _context.Set<T>().AnyAsync(predicate, cancellationToken);
+        }
+
+        public async virtual Task<T?> AddAsync(T entity, CancellationToken cancellationToken = default)
         {
             var result = _context.Set<T>().Add(entity);
 
-            var insertedRows = await _context.SaveChangesAsync();
+            var insertedRows = await _context.SaveChangesAsync(cancellationToken);
 
             return insertedRows > 0 ? result.Entity : null;
         }
 
-        public async virtual Task BulkInsertAsync(IList<T> items)
+        public async virtual Task BulkInsertAsync(IList<T> items, CancellationToken cancellationToken = default)
         {
-            await _context.BulkInsertAsync(items);
+            await _context.BulkInsertAsync(items, cancellationToken: cancellationToken);
         }
 
-        public void Update(T entity)
-        {
-            if (_context.Entry(entity).State == EntityState.Detached)
-            {
-                _context.Set<T>().Attach(entity);
-                _context.Entry(entity).State = EntityState.Modified;
-            }
-        }
+        public void Update(T entity) => _context.Update(entity);
 
-        public async virtual Task UpdateAsync(T entity)
+        public async virtual Task UpdateAsync(T entity, CancellationToken cancellationToken = default)
         {
             if (_context.Entry(entity).State == EntityState.Detached)
             {
@@ -61,46 +42,46 @@ namespace ExpenseManagement.Api.Data.Repositories.Generic
                 _context.Entry(entity).State = EntityState.Modified;
             }
 
-            await _context.SaveChangesAsync();
+            await _context.SaveChangesAsync(cancellationToken);
         }
 
-        public async virtual Task BulkUpdateAsync(IList<T> items)
+        public async virtual Task BulkUpdateAsync(IList<T> items, CancellationToken cancellationToken = default)
         {
-            await _context.BulkUpdateAsync(items);
+            await _context.BulkUpdateAsync(items, cancellationToken: cancellationToken);
         }
 
-        public async virtual Task DeleteAsync(T entity)
+        public async virtual Task DeleteAsync(T entity, CancellationToken cancellationToken = default)
         {
             _context.Remove(entity);
-            await _context.SaveChangesAsync();
+            await _context.SaveChangesAsync(cancellationToken);
         }
 
-        public async virtual Task BulkDeleteAsync(IList<T> items)
+        public async virtual Task BulkDeleteAsync(IList<T> items, CancellationToken cancellationToken = default)
         {
             if (items == null || !items.Any())
                 return;
-            await _context.BulkDeleteAsync(items);
+            await _context.BulkDeleteAsync(items, cancellationToken: cancellationToken);
         }
 
-        public async virtual Task<T?> FirstOrDefaultAsync(Expression<Func<T, bool>> predicate, string? include = default)
+        public async virtual Task<T?> FirstOrDefaultAsync(Expression<Func<T, bool>> predicate, string? include = default, CancellationToken cancellationToken = default)
         {
             var query = _context.Set<T>().AsNoTracking();
             query = BuildIncludeQuery(query, include);
-            return await query.FirstOrDefaultAsync(predicate);
+            return await query.FirstOrDefaultAsync(predicate, cancellationToken);
         }
 
-        public async virtual Task<T?> SingleOrDefaultAsync(Expression<Func<T, bool>> predicate, string? include = default)
+        public async virtual Task<T?> SingleOrDefaultAsync(Expression<Func<T, bool>> predicate, string? include = default, CancellationToken cancellationToken = default)
         {
             var query = _context.Set<T>().AsNoTracking();
             query = BuildIncludeQuery(query, include);
-            return await query.SingleOrDefaultAsync(predicate);
+            return await query.SingleOrDefaultAsync(predicate, cancellationToken);
         }
 
-        public async virtual Task<IQueryable<T>> GetAll(string? include = default)
+        public virtual IQueryable<T> GetAll(string? include = default)
         {
             var query = _context.Set<T>().AsNoTracking();
             query = BuildIncludeQuery(query, include);
-            return await Task.FromResult(query);
+            return query;
         }
 
         public async virtual Task<IQueryable<T>> FindBy(Expression<Func<T, bool>> predicate, string? include = default)

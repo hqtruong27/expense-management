@@ -15,7 +15,7 @@ namespace ExpenseManagement.Api.Data.Repositories.Generic
                                      ? _httpContext.User.Identity.Name ?? string.Empty
                                      : "Unknown";
 
-        public async override Task<T?> AddAsync(T entity)
+        public async override Task<T?> AddAsync(T entity, CancellationToken cancellationToken = default)
         {
             entity.CreatedDate = DateTime.Now;
             if (string.IsNullOrEmpty(entity.CreatedBy))
@@ -30,10 +30,10 @@ namespace ExpenseManagement.Api.Data.Repositories.Generic
             }
 
             entity.DeletedAt = null;
-            return await base.AddAsync(entity);
+            return await base.AddAsync(entity, cancellationToken);
         }
 
-        public async override Task UpdateAsync(T entity)
+        public async override Task UpdateAsync(T entity, CancellationToken cancellationToken = default)
         {
             entity.LastUpdatedDate = DateTime.Now;
             if (string.IsNullOrEmpty(entity.LastUpdatedBy))
@@ -41,18 +41,18 @@ namespace ExpenseManagement.Api.Data.Repositories.Generic
                 entity.LastUpdatedBy = CurrentUser;
             }
 
-            await base.UpdateAsync(entity);
+            await base.UpdateAsync(entity, cancellationToken);
         }
 
-        public async override Task BulkUpdateAsync(IList<T> items)
+        public async override Task BulkUpdateAsync(IList<T> items, CancellationToken cancellationToken = default)
         {
             if (items == null || !items.Any())
                 return;
 
-            await base.BulkUpdateAsync(items.Select(x => { x.LastUpdatedDate = DateTime.Now; x.LastUpdatedBy = CurrentUser; return x; }).ToList());
+            await base.BulkUpdateAsync(items.Select(x => { x.LastUpdatedDate = DateTime.Now; x.LastUpdatedBy = CurrentUser; return x; }).ToList(), cancellationToken);
         }
 
-        public override async Task BulkInsertAsync(IList<T> items)
+        public override async Task BulkInsertAsync(IList<T> items, CancellationToken cancellationToken = default)
         {
             await base.BulkInsertAsync(items.Select(x =>
             {
@@ -64,7 +64,7 @@ namespace ExpenseManagement.Api.Data.Repositories.Generic
             }).ToList());
         }
 
-        public override async Task DeleteAsync(T entity)
+        public override async Task DeleteAsync(T entity, CancellationToken cancellationToken = default)
         {
             if (entity == null)
                 return;
@@ -74,15 +74,15 @@ namespace ExpenseManagement.Api.Data.Repositories.Generic
             entity.LastUpdatedBy = CurrentUser;
             entity.LastUpdatedDate = DateTime.Now;
 
-            await UpdateAsync(entity);
+            await UpdateAsync(entity, cancellationToken);
         }
 
-        public override async Task BulkDeleteAsync(IList<T> items)
+        public override async Task BulkDeleteAsync(IList<T> items, CancellationToken cancellationToken = default)
         {
             if (items == null || !items.Any())
                 return;
 
-            await BulkUpdateAsync(items.Select(x => { x.IsDeleted = true; x.DeletedAt = DateTime.Now; return x; }).ToList());
+            await BulkUpdateAsync(items.Select(x => { x.IsDeleted = true; x.DeletedAt = DateTime.Now; return x; }).ToList(), cancellationToken);
         }
     }
 }
