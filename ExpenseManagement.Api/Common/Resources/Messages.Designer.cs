@@ -61,6 +61,24 @@ namespace ExpenseManagement.Api.Common.Resources {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Change password falied.
+        /// </summary>
+        internal static string ChangePasswordFailed {
+            get {
+                return ResourceManager.GetString("ChangePasswordFailed", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Change password success.
+        /// </summary>
+        internal static string ChangePasswordSuccess {
+            get {
+                return ResourceManager.GetString("ChangePasswordSuccess", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Create failure.
         /// </summary>
         internal static string CreateFailure {
