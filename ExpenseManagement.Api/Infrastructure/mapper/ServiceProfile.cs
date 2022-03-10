@@ -2,7 +2,7 @@
 using ExpenseManagement.Api.Data.Models;
 using ExpenseManagement.Api.Model;
 
-namespace ExpenseManagement.Api.mapper
+namespace ExpenseManagement.Api.Infrastructure.mapper
 {
     public class ServiceProfile : Profile
     {
@@ -16,6 +16,7 @@ namespace ExpenseManagement.Api.mapper
             CreateMap<ExpenseUpdateRequest, Expense>();
             CreateMap<DebtCharge, DebtChargeResponse>();
             CreateMap<DebtReminderCreateRequest, DebtReminder>();
+            CreateMap<UserExpense, UserExpenseResponse>();
         }
     }
 }
