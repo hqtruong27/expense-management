@@ -24,10 +24,10 @@
 
                 switch (error)
                 {
-                    //case BadRequestException e:
-                    //    // custom application error
-                    //    response.StatusCode = StatusCodes.Status400BadRequest;
-                    //    break;
+                    case BadRequestException:
+                        // custom application error
+                        response.StatusCode = StatusCodes.Status400BadRequest;
+                        break;
                     case KeyNotFoundException:
                         // not found error
                         response.StatusCode = StatusCodes.Status404NotFound;
@@ -55,6 +55,16 @@
         public static void UseErrorHandlerMiddleware(this IApplicationBuilder app)
         {
             app.UseMiddleware<ErrorHandlerMiddleware>();
+        }
+    }
+
+    public class BadRequestException : Exception
+    {
+        public BadRequestException() { }
+
+        public BadRequestException(string? message) : base(message)
+        {
+
         }
     }
 }
