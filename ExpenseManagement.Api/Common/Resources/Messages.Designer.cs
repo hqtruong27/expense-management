@@ -61,6 +61,15 @@ namespace ExpenseManagement.Api.Common.Resources {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Change email successfully.
+        /// </summary>
+        internal static string ChangeEmailSuccess {
+            get {
+                return ResourceManager.GetString("ChangeEmailSuccess", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Change password falied.
         /// </summary>
         internal static string ChangePasswordFailed {
@@ -97,6 +106,15 @@ namespace ExpenseManagement.Api.Common.Resources {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Email already exists, please try another one.
+        /// </summary>
+        internal static string EmailExists {
+            get {
+                return ResourceManager.GetString("EmailExists", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Not found.
         /// </summary>
         internal static string NotFound {
@@ -111,6 +129,33 @@ namespace ExpenseManagement.Api.Common.Resources {
         internal static string NotImage {
             get {
                 return ResourceManager.GetString("NotImage", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to OTP has expired.
+        /// </summary>
+        internal static string OTPExpired {
+            get {
+                return ResourceManager.GetString("OTPExpired", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Invalid otp code.
+        /// </summary>
+        internal static string OTPInvalid {
+            get {
+                return ResourceManager.GetString("OTPInvalid", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to OTP has been used.
+        /// </summary>
+        internal static string OTPUsed {
+            get {
+                return ResourceManager.GetString("OTPUsed", resourceCulture);
             }
         }
         
