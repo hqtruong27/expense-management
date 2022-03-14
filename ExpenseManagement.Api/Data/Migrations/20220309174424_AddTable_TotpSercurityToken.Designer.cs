@@ -4,6 +4,7 @@ using ExpenseManagement.Api.Data;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 
 #nullable disable
@@ -11,9 +12,10 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 namespace ExpenseManagement.Api.Data.Migrations
 {
     [DbContext(typeof(ExpenseManagementDbcontext))]
-    partial class ExpenseManagermentDbcontextModelSnapshot : ModelSnapshot
+    [Migration("20220309174424_AddTable_TotpSercurityToken")]
+    partial class AddTable_TotpSercurityToken
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder

@@ -14,6 +14,7 @@ namespace ExpenseManagement.Api.Data.Models
         [Column(TypeName = "datetime")]
         public DateTime? TimeStamp { get; set; }
         public string? Exception { get; set; }
+        public string? LogEvent { get; set; }
         public string? Properties { get; set; }
     }
 }
