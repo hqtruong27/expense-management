@@ -4,6 +4,7 @@ namespace ExpenseManagement.Api.Data.Repositories.Generic
 {
     public interface IRepository<T>
     {
+        ExpenseManagementDbcontext Context { get; }
         IQueryable<T> GetAll(string? include = default);
         Task<IQueryable<T>> FindBy(Expression<Func<T, bool>> predicate, string? include = default);
         IQueryable<T> Where(Expression<Func<T, bool>> predicate, string? include = default);

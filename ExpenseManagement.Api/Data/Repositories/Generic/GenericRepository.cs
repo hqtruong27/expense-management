@@ -1,5 +1,6 @@
 ﻿using EFCore.BulkExtensions;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.EntityFrameworkCore.Query;
 using System.Linq.Expressions;
 
 namespace ExpenseManagement.Api.Data.Repositories.Generic
@@ -7,6 +8,8 @@ namespace ExpenseManagement.Api.Data.Repositories.Generic
     public abstract class GenericRepository<T> : IRepository<T> where T : class
     {
         private readonly ExpenseManagementDbcontext _context;
+
+        public ExpenseManagementDbcontext Context => _context;
 
         public GenericRepository(ExpenseManagementDbcontext dbContext)
         {
@@ -98,6 +101,16 @@ namespace ExpenseManagement.Api.Data.Repositories.Generic
             query = BuildIncludeQuery(query, include);
 
             return query;
+        }
+
+        public virtual IQueryable<T> FromSqlRaw([NotParameterized] string sql, params object[] parameters)
+        {
+            return _context.Set<T>().FromSqlRaw(sql, parameters);
+        }
+
+        public virtual IQueryable<T> FromSqlInterpolated([NotParameterized] FormattableString sql)
+        {
+            return _context.Set<T>().FromSqlInterpolated(sql);
         }
 
         public IQueryable<T> BuildIncludeQuery(IQueryable<T> query, string? include)
