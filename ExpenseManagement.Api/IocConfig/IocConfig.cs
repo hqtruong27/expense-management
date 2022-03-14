@@ -2,8 +2,9 @@
 using ExpenseManagement.Api.Data.Models;
 using ExpenseManagement.Api.Data.Repositories;
 using ExpenseManagement.Api.Hubs;
+using ExpenseManagement.Api.Identity;
 using ExpenseManagement.Api.Infrastructure;
-using ExpenseManagement.Api.mapper;
+using ExpenseManagement.Api.Infrastructure.mapper;
 using ExpenseManagement.Api.Mfa;
 using ExpenseManagement.Api.Model;
 using ExpenseManagement.Api.Options;
@@ -33,12 +34,26 @@ namespace ExpenseManagement.Api.IocConfig
 
             var connecttionString = builder.Configuration.GetConnectionString("ExpenseManagementDbcontext");
             builder.Services.AddDbContextPool<ExpenseManagementDbcontext>(options =>
-                     options.UseSqlServer(connecttionString));
+            {
+                options.ConfigureWarnings(builder =>
+                {
+                    builder.Ignore(Microsoft.EntityFrameworkCore.Diagnostics.CoreEventId.PossibleIncorrectRequiredNavigationWithQueryFilterInteractionWarning);
+                });
+                options.UseSqlServer(connecttionString);
+            });
 
             // Identity services
-            builder.Services.AddIdentity<User, Role>()
+            builder.Services.AddIdentity<User, Role>(options =>
+                            {
+                                options.Tokens.EmailConfirmationTokenProvider = "emailConfirmation";
+                                options.Tokens.PasswordResetTokenProvider = "passwordReset";
+                                //options.Tokens.ChangeEmailTokenProvider = TokenOptions.DefaultEmailProvider;
+                            })
                             .AddEntityFrameworkStores<ExpenseManagementDbcontext>()
-                            .AddDefaultTokenProviders();
+                            .AddDefaultTokenProviders()
+                            //.AddTokenProvider<PasswordResetTokenProvider<User>>("passwordReset")
+                            //.AddTokenProvider<ChangeEmailTokenProvider<User>>("Email2")
+                            .AddTokenProvider<ChangeEmailTotpSecurityStampTokenProvider<User>>(ExpenseTokenOptions.ChangeEmailProvider);
 
             builder.Services.AddSignalR();
             builder.Services.AddHangfire(c => c.UseSqlServerStorage(connecttionString));
@@ -60,6 +75,7 @@ namespace ExpenseManagement.Api.IocConfig
             builder.Services.AddScoped<IDebtReminderRepository, DebtReminderRepository>();
             builder.Services.AddScoped<ITransactionHistoryRepository, TransactionHistoryRepository>();
             builder.Services.AddScoped<ITransactionHistoryRepository, TransactionHistoryRepository>();
+            builder.Services.AddScoped<ITotpSercurityTokenRepository, TotpSercurityTokenRepository>();
             builder.Services.AddScoped<IUserClaimsPrincipalFactory<User>, AdditionalUserClaimsPrincipalFactory>();
             builder.Services.AddScoped<IHangfireService, HangfireService>();
 
@@ -68,7 +84,7 @@ namespace ExpenseManagement.Api.IocConfig
                                                      .AllowAnyMethod()
                                                      .AllowAnyHeader()
                                                      .AllowCredentials()
-                                                     .WithOrigins(builder.Configuration["AllowedOrigins"])));
+                                                     .WithOrigins(builder.Configuration["AllowedOrigins"].Split(','))));
 
             // Adding Authentication
             builder.Services.AddAuthentication(options =>
@@ -101,7 +117,7 @@ namespace ExpenseManagement.Api.IocConfig
                         var path = context.HttpContext.Request.Path;
                         if (!string.IsNullOrEmpty(accessToken) &&
                             (path.StartsWithSegments("/notificationhub") || path.StartsWithSegments("/chathub")
-                            || path.StartsWithSegments("/hangfire")))
+                            || path.StartsWithSegments("/hangfire") || path.StartsWithSegments("/logs")))
                         {
                             // Read the token out of the query string
                             context.Token = accessToken;
@@ -202,12 +218,13 @@ namespace ExpenseManagement.Api.IocConfig
 
             builder.Host.UseSerilog((ctx, lc) => lc
                         .ReadFrom.Configuration(configuration)
+                        .Filter.ByExcluding(c => c.Properties.Any(p => p.Value.ToString().Contains("hangfire/stats") || p.Value.ToString().Contains("favicon.ico")))
                         .Enrich.FromLogContext());
 
             //Serilog.Debugging.SelfLog.Enable(msg =>
             //{
-            //    Debug.Print(msg);
-            //    Debugger.Break();
+            //    System.Diagnostics.Debug.Print(msg);
+            //    System.Diagnostics.Debugger.Break();
             //});
 
             builder.Services.AddSingleton(builder.Configuration.GetSection(nameof(Email)).Get<Email>());
@@ -237,7 +254,7 @@ namespace ExpenseManagement.Api.IocConfig
             app.UseSwaggerUI(c =>
             {
                 c.SwaggerEndpoint("/swagger/v1/swagger.json", "Expense Management Api");
-                c.RoutePrefix = "";
+                c.RoutePrefix = string.Empty;
             });
 
             return app;
