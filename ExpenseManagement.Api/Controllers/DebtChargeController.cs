@@ -16,14 +16,16 @@ namespace ExpenseManagement.Api.Controllers
         private readonly ILogger _logger;
         private readonly IMapper _mapper;
         private readonly IDebtChargeRepository _debtChargeRepository;
+        private readonly IDebtReminderRepository _debtReminderRepository;
         private readonly ITransactionHistoryRepository _transactionHistoryRepository;
 
-        public DebtChargeController(ILogger<DebtChargeController> logger, IMapper mapper, ITransactionHistoryRepository transactionHistoryRepository, IDebtChargeRepository debtChargeRepository)
+        public DebtChargeController(ILogger<DebtChargeController> logger, IMapper mapper, ITransactionHistoryRepository transactionHistoryRepository, IDebtChargeRepository debtChargeRepository, IDebtReminderRepository debtReminderRepository)
         {
             _logger = logger;
             _mapper = mapper;
             _transactionHistoryRepository = transactionHistoryRepository;
             _debtChargeRepository = debtChargeRepository;
+            _debtReminderRepository = debtReminderRepository;
         }
 
         [HttpGet]
@@ -62,19 +64,35 @@ namespace ExpenseManagement.Api.Controllers
         [HttpPost("create")]
         public async Task<IActionResult> Create([FromBody] DebtChargeCreateRequest request)
         {
-            _logger.LogInformation("Start:{IP} create debt charge, {request}", LocalIpAddress, request);
+            _logger.LogInformation("Start:{IP} create debt charge, {rq}", LocalIpAddress, request);
             var type = request.Type ?? DebtChargeType.Lend;
-            var debtCharge = new DebtCharge
+            var entity = new DebtCharge
             {
                 Amount = request.Amount,
-                CreditorId = type == DebtChargeType.Lend ? Id : request.UserId,
-                DebtorId = type == DebtChargeType.Debt ? Id : request.UserId,
+                CreditorId = type == DebtChargeType.Lend ? UserId : request.UserId,
+                DebtorId = type == DebtChargeType.Debt ? UserId : request.UserId,
                 Description = request.Description,
                 Name = request.Name,
                 Status = request.Status ?? DebtChargeStatus.Unpaid,
             };
 
-            await _debtChargeRepository.AddAsync(debtCharge);
+            var debtCharge = await _debtChargeRepository.AddAsync(entity);
+            if (debtCharge != null && request.IsDebtReminder)
+            {
+                var debtReminder = request.DebtReminder;
+                var entityReminder = new DebtReminder
+                {
+                    DebtChargeId = debtCharge.Id,
+                    StartDate = debtReminder.StartDate,
+                    DayInterval = debtReminder.Duration,
+                    Type = debtReminder.Type != null ?
+                    debtReminder.Type.Value : DebtReminderType.Email,
+                };
+
+                await _debtReminderRepository.AddAsync(entityReminder);
+                _logger.LogInformation("Processing: create debt reminder succeeded");
+            }
+
 
             _logger.LogInformation("End: create debt charge succeeded");
             return Ok(new ResponseResult(Messages.CreateSuccess));
@@ -83,18 +101,24 @@ namespace ExpenseManagement.Api.Controllers
         [HttpPut("update/{id}")]
         public async Task<IActionResult> Update([FromRoute] int id, [FromBody] DebtChargeUpdateRequest request)
         {
-            _logger.LogInformation("Start: update debt charge, {request}", request);
+            _logger.LogInformation("Start: update debt charge, {rq}", request);
             var debtCharge = await _debtChargeRepository.FirstOrDefaultAsync(x => x.Id == id && x.Status == DebtChargeStatus.Unpaid);
             if (debtCharge == null)
             {
                 return BadRequest(new ResponseResult(400, Messages.NotFound));
             }
 
+            var debtReminder = await _debtReminderRepository.FirstOrDefaultAsync(x => x.DebtChargeId == debtCharge.Id);
             if (!request.Status.HasValue || request.Status == DebtChargeStatus.Unpaid)
             {
                 debtCharge.Description = request.Description;
                 debtCharge.Name = request.Name;
                 debtCharge.Amount = request.Amount;
+                if (debtReminder != null && request.IsDebtReminder)
+                {
+                    var dr = _mapper.Map(request.DebtReminder, debtReminder);
+                    await _debtReminderRepository.UpdateAsync(dr);
+                }
             }
             else
             {
@@ -102,7 +126,7 @@ namespace ExpenseManagement.Api.Controllers
                 var paid = status == DebtChargeStatus.Paid;
                 debtCharge.Status = status;
 
-                var transactionHistory = new TransactionHistory
+                var transaction = new TransactionHistory
                 {
                     Amount = debtCharge.Amount,
                     Description = debtCharge.Description,
@@ -114,10 +138,15 @@ namespace ExpenseManagement.Api.Controllers
                     TransactionDate = DateTime.Now,
                 };
 
-                await _transactionHistoryRepository.AddAsync(transactionHistory);
-                _logger.LogInformation("Updating: create transaction debt charge success");
-            }
+                await _transactionHistoryRepository.AddAsync(transaction);
+                _logger.LogInformation("Processing: create transaction debt charge success");
 
+                if (debtReminder != null)
+                {
+                    await _debtReminderRepository.DeleteAsync(debtReminder);
+                    _logger.LogInformation("Processing: delete debt reminder success");
+                }
+            }
 
             await _debtChargeRepository.UpdateAsync(debtCharge);
 
