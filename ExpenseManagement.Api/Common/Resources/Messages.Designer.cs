@@ -106,6 +106,15 @@ namespace ExpenseManagement.Api.Common.Resources {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Delete success.
+        /// </summary>
+        internal static string DeleteSuccess {
+            get {
+                return ResourceManager.GetString("DeleteSuccess", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Email already exists, please try another one.
         /// </summary>
         internal static string EmailExists {

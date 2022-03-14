@@ -132,6 +132,9 @@
   <data name="CreateSuccess" xml:space="preserve">
     <value>Create success</value>
   </data>
+  <data name="DeleteSuccess" xml:space="preserve">
+    <value>Delete success</value>
+  </data>
   <data name="EmailExists" xml:space="preserve">
     <value>Email already exists, please try another one</value>
   </data>
