@@ -13,7 +13,7 @@ namespace ExpenseManagement.Api.Common
                 : amount == 0 ? "0" : amount.ToString("#,###", culture.NumberFormat);
         }
 
-        public static async Task<string> GetTextFromFileAsync(this string path)
+        public static async Task<string> ReadTextAsync(this string path)
         {
             return await File.ReadAllTextAsync(path);
         }

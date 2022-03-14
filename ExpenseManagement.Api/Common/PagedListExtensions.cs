@@ -1,5 +1,6 @@
 ﻿using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
+using System.ComponentModel.DataAnnotations.Schema;
 using System.Linq.Expressions;
 
 namespace ExpenseManagement.Api.Common
@@ -18,8 +19,8 @@ namespace ExpenseManagement.Api.Common
         public string? FromDate { get; set; }
         [FromQuery(Name = "to")]
         public string? ToDate { get; set; }
-
         [FromQuery(Name = "q")]
+        [Column(TypeName = "nvarchar(250)")]
         public string? Query { get => _query; set => _query = string.IsNullOrWhiteSpace(value) ? null : value.Trim(); }
     }
 
@@ -41,7 +42,7 @@ namespace ExpenseManagement.Api.Common
             Items = items;
         }
     }
-    public static class PagedListExtensions
+    public static class PagedListQueryableExtensions
     {
         /// <summary>
         /// Returns an <see cref="PagedList{TResult}" /> from an <see cref="IQueryable{T}" /> by enumerating it.
@@ -117,6 +118,7 @@ namespace ExpenseManagement.Api.Common
 
             return new PagedList<TResult>(items, count, pageNumber, pageSize);
         }
+
         //public static PagedList<T> ToPagedList<T>(this IEnumerable<T> source, int pageNumber, int pageSize)
         //{
         //    var count = source.Count();
@@ -124,12 +126,12 @@ namespace ExpenseManagement.Api.Common
 
         //    return new PagedList<T>(items, count, pageNumber, pageSize);
         //}
-        public static PagedList<TResult> ToPagedList<TSource, TResult>(this IEnumerable<TSource> source, Func<TSource, TResult> selector, int pageNumber, int pageSize)
-        {
-            var count = source.Count();
-            var items = source.Skip((pageNumber - 1) * pageSize).Take(pageSize).Select(selector).ToList();
+        //public static PagedList<TResult> ToPagedList<TSource, TResult>(this IEnumerable<TSource> source, Func<TSource, TResult> selector, int pageNumber, int pageSize)
+        //{
+        //    var count = source.Count();
+        //    var items = source.Skip((pageNumber - 1) * pageSize).Take(pageSize).Select(selector).ToList();
 
-            return new PagedList<TResult>(items, count, pageNumber, pageSize);
-        }
+        //    return new PagedList<TResult>(items, count, pageNumber, pageSize);
+        //}
     }
 }
