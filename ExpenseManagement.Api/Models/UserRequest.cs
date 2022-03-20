@@ -1,6 +1,6 @@
 ﻿using System.ComponentModel.DataAnnotations;
 
-namespace ExpenseManagement.Api.Model
+namespace ExpenseManagement.Api.Models
 {
     public class CreateUserRequest
     {

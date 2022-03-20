@@ -1,6 +1,6 @@
 ﻿using ExpenseManagement.Api.Enum;
 
-namespace ExpenseManagement.Api.Model
+namespace ExpenseManagement.Api.Models
 {
     public class ExternalLoginRequest
     {

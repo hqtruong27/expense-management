@@ -1,6 +1,6 @@
 ﻿using FluentValidation;
 
-namespace ExpenseManagement.Api.Model.Validator
+namespace ExpenseManagement.Api.Models.Validator
 {
     public class ExpenseCreateRequestValidator : AbstractValidator<ExpenseCreateRequest>
     {

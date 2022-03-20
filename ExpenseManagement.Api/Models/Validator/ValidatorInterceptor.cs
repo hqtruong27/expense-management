@@ -5,7 +5,7 @@ using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Filters;
 
-namespace ExpenseManagement.Api.Model.Validator
+namespace ExpenseManagement.Api.Models.Validator
 {
     public class ValidatorInterceptor : IValidatorInterceptor
     {

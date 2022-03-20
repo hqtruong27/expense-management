@@ -1,4 +1,4 @@
-﻿namespace ExpenseManagement.Api.Model
+﻿namespace ExpenseManagement.Api.Models
 {
     public class UserResponse
     {
@@ -11,5 +11,6 @@
         public string? Background { get; set; }
         public string? Address { get; set; }
         public DateTime CreatedDate { get; set; }
+        public string CreatedDateString { get; set; } = string.Empty;
     }
 }

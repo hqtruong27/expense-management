@@ -1,6 +1,6 @@
 ﻿using System.Text.Json.Serialization;
 
-namespace ExpenseManagement.Api.Model
+namespace ExpenseManagement.Api.Models
 {
     public class FacebookUserInfoResponse
     {

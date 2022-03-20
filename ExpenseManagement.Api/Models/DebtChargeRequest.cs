@@ -1,7 +1,7 @@
 ﻿using ExpenseManagement.Api.Common;
 using ExpenseManagement.Api.Enum;
 
-namespace ExpenseManagement.Api.Model
+namespace ExpenseManagement.Api.Models
 {
     public class DebtChargeIndexRequest : QueryStringParameters
     {
@@ -22,7 +22,7 @@ namespace ExpenseManagement.Api.Model
         public string Description { get; set; } = string.Empty;
         public decimal Amount { get; set; }
         public DebtChargeStatus? Status { get; set; }
-        public PaymentMethodCode PaymentMethod { get; set; }
+        public PaymentMethodCode? PaymentMethod { get; set; }
         public bool IsDebtReminder { get; set; }
         public DebtReminderCreateRequest DebtReminder { get; set; } = new DebtReminderCreateRequest();
     }

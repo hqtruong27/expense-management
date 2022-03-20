@@ -1,7 +1,7 @@
 ﻿using MimeKit;
 using MimeKit.Text;
 
-namespace ExpenseManagement.Api.Model
+namespace ExpenseManagement.Api.Models
 {
     public class MailMessage
     {

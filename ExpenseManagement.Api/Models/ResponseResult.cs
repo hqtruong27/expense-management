@@ -1,11 +1,13 @@
 ﻿using System.Text.Json.Serialization;
 
-namespace ExpenseManagement.Api.Model
+namespace ExpenseManagement.Api.Models
 {
     public class ResponseResult
     {
         private readonly int _statusCode;
         public bool Succeeded => _statusCode >= 200 && _statusCode <= 299;
+        [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
+        public string? Code { get; set; }
         [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
         public string? Description { get; set; }
         [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]

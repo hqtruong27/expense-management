@@ -1,4 +1,4 @@
-﻿namespace ExpenseManagement.Api.Model
+﻿namespace ExpenseManagement.Api.Models
 {
     public class JwtTokenResponse
     {
