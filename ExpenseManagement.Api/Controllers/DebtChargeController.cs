@@ -29,20 +29,19 @@ namespace ExpenseManagement.Api.Controllers
         }
 
         [HttpGet]
-        public async Task<IActionResult> Index([FromQuery] DebtChargeIndexRequest request)
+        public async Task<IActionResult> Index([FromQuery] DebtChargeIndexRequest req)
         {
-            var data = _debtChargeRepository.Where(x => (request.Query == null || x.Amount.ToString().Contains(request.Query)
-                                                    || (x.Debtor != null && ((x.Debtor.Surname + x.Debtor.GivenName).Contains(request.Query)
-                                                    || x.Debtor.Email.Contains(request.Query) || x.Debtor.UserName.Contains(request.Query)))
-                                                    || (x.Creditor != null && ((x.Creditor.Surname + x.Creditor.GivenName).Contains(request.Query)
-                                                    || x.Creditor.Email.Contains(request.Query) || x.Creditor.UserName.Contains(request.Query))))
-                                                    && (request.Status == null || x.Status == request.Status)
-                                                    && (request.From == null || x.CreatedDate.Date >= request.From.Value.Date)
-                                                    && (request.To == null || x.CreatedDate.Date <= request.To.Value.Date))
+            var data = _debtChargeRepository.Where(x => (req.Query == null || x.Name.Contains(req.Query)
+                                                    || x.Description.Contains(req.Query) || x.Debtor.UserName.Contains(req.Query)
+                                                    || x.Creditor.UserName.Contains(req.Query) || x.Creditor.Email.Contains(req.Query)
+                                                    || x.Debtor.Email.Contains(req.Query) || x.Debtor.PhoneNumber.Contains(req.Query)
+                                                    || x.Creditor.PhoneNumber.Contains(req.Query) || x.Amount.ToString().Contains(req.Query))
+                                                    && (req.Status == null || x.Status == req.Status)
+                                                    && (req.From == null || x.CreatedDate.Date >= req.From.Value.Date)
+                                                    && (req.To == null || x.CreatedDate.Date <= req.To.Value.Date))
                                                     .OrderByDescending(x => x.CreatedDate);
 
-            var result = await data.ToPagedListAsync(x => _mapper.Map<DebtChargeResponse>(x),
-                               request.PageNumber, request.PageSize);
+            var result = await data.ToPagedListAsync(x => _mapper.Map<DebtChargeResponse>(x), req.PageNumber, req.PageSize);
 
             return Ok(new ResponseResult(result));
         }
@@ -133,7 +132,7 @@ namespace ExpenseManagement.Api.Controllers
                     CreditorId = debtCharge.CreditorId,
                     DebtChargeId = debtCharge.Id,
                     DebtorId = debtCharge.DebtorId,
-                    PaymentMethod = paid ? request.PaymentMethod : null,
+                    PaymentMethod = paid ? request.PaymentMethod ?? PaymentMethodCode.Cash : null,
                     Status = paid ? TransactionHistoryStatus.Success : TransactionHistoryStatus.Error,
                     TransactionDate = DateTime.Now,
                 };
