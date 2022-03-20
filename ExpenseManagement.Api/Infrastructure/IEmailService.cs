@@ -1,9 +1,11 @@
 ﻿using ExpenseManagement.Api.Model;
+using MimeKit.Text;
 
 namespace ExpenseManagement.Api.Infrastructure
 {
     public interface IEmailService
     {
-        Task SendAsync(Message message);
+        Task SendAsync(MailMessage message);
+        Task SendAsync(string to, string subject, string content,TextFormat? textFormat = default);
     }
 }
