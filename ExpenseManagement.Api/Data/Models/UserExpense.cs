@@ -4,9 +4,9 @@ namespace ExpenseManagement.Api.Data.Models
 {
     public class UserExpense : BaseTrackedEntity
     {
-        public string UserId { get; set; } = string.Empty;
+        public string UserId { get; set; } = default!;
         public int ExpenseId { get; set; }
-        public User? User { get; set; }
-        public Expense? Expense { get; set; }
+        public User User { get; set; } = default!;
+        public Expense Expense { get; set; } = default!;
     }
 }

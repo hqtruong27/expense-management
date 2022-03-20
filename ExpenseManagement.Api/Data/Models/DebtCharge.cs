@@ -17,10 +17,10 @@ namespace ExpenseManagement.Api.Data.Models
         public decimal Amount { get; set; }
         public string CreditorId { get; set; } = string.Empty;
         [ForeignKey("CreditorId")]
-        public User? Creditor { get; set; }
+        public User Creditor { get; set; } = default!;
         public string DebtorId { get; set; } = string.Empty;
         [ForeignKey("DebtorId")]
-        public User? Debtor { get; set; }
+        public User Debtor { get; set; } = default!;
         public DebtChargeStatus Status { get; set; }
     }
 }

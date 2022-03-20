@@ -17,7 +17,7 @@ namespace ExpenseManagement.Api.Data.Models
         public DateTime? LastUpdatedDate { get; set; }
         public bool IsDeleted { get; set; }
         public DateTime? DeletedAt { get; set; }
-        public ICollection<DebtCharge>? Creditors { get; set; }
-        public ICollection<DebtCharge>? Debtors { get; set; }
+        public ICollection<DebtCharge> Creditors { get; set; } = default!;
+        public ICollection<DebtCharge> Debtors { get; set; } = default!;
     }
 }

@@ -12,7 +12,7 @@ namespace ExpenseManagement.Api.Data.Models
         public int Id { get; set; }
         public string Name { get; set; } = string.Empty;
         public ChatType Type { get; set; }
-        //public ICollection<Message>? Messages { get; set; }
-        //public ICollection<UserChat>? Users { get; set; }
+        public ICollection<Message> Messages { get; set; } = default!;
+        public ICollection<UserChat> Users { get; set; } = default!;
     }
 }

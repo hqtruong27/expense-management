@@ -9,6 +9,6 @@ namespace ExpenseManagement.Api.Data.Models
         public DateTime Timestamp { get; set; }
         public int ChatId { get; set; }
         [ForeignKey("ChatId")]
-        public Chat? Chat { get; set; }
+        public Chat Chat { get; set; } = default!;
     }
 }

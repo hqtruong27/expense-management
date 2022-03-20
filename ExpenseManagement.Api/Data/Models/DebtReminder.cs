@@ -16,6 +16,6 @@ namespace ExpenseManagement.Api.Data.Models
         public DebtReminderType Type { get; set; }
         public int DebtChargeId { get; set; }
         [ForeignKey("DebtChargeId")]
-        public DebtCharge? DebtCharge { get; set; }
+        public DebtCharge DebtCharge { get; set; } = default!;
     }
 }

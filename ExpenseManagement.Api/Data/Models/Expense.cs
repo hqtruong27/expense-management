@@ -21,5 +21,6 @@ namespace ExpenseManagement.Api.Data.Models
         public string Description { get; set; } = string.Empty;
         public ExpenseType Type { get; set; }
         public ExpenseStatus Status { get; set; }
+        public UserExpense UserExpense { get; set; } = default!;
     }
 }
