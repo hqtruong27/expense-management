@@ -1,5 +1,4 @@
-﻿using ExpenseManagement.Api.Helper;
-using ExpenseManagement.Api.Model;
+﻿using ExpenseManagement.Api.Model;
 using ExpenseManagement.Api.Options;
 using System.Text.Json;
 
@@ -20,7 +19,7 @@ namespace ExpenseManagement.Api.Infrastructure
         public async Task<FacebookUserInfoResponse?> GetUserInfoAsync(string accessToken)
         {
             _logger.LogInformation("START: get user info {accessToken}", accessToken);
-            var formatedUri = string.Format(_facebook.UserInfoUri, accessToken, EncryptHelper.HMACSHA256(accessToken, _facebook.AppSecrect));
+            var formatedUri = string.Format(_facebook.UserInfoUri, accessToken, Common.Helper.HMACSHA256(accessToken, _facebook.AppSecrect));
             var response = await _httpClient.GetAsync(formatedUri);
             response.EnsureSuccessStatusCode();
 
