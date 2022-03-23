@@ -7,7 +7,7 @@ namespace ExpenseManagement.Api.Attribute
 {
     public class HangFireAuthorizationFilter : IDashboardAuthorizationFilter
     {
-        private readonly string _hangFireCookieName = "HangFireCookie";
+        private const string HANGFIRE_COOKIE_NAME = "HangFireCookie";
         private readonly int _cookieExpirationMinutes = 60;
         private readonly IConfiguration _configuration;
 
@@ -24,14 +24,14 @@ namespace ExpenseManagement.Api.Attribute
             var access_token = httpContext.Request.Query["access_token"];
             if (!string.IsNullOrEmpty(access_token))
             {
-                if (!httpContext.Request.Cookies.Any(x => x.Key == _hangFireCookieName))
+                if (!httpContext.Request.Cookies.Any(x => x.Key == HANGFIRE_COOKIE_NAME))
                 {
                     setCookie = true;
                 }
             }
             else
             {
-                access_token = httpContext.Request.Cookies[_hangFireCookieName];
+                access_token = httpContext.Request.Cookies[HANGFIRE_COOKIE_NAME];
             }
 
             if (string.IsNullOrEmpty(access_token))
@@ -60,7 +60,7 @@ namespace ExpenseManagement.Api.Attribute
 
             if (setCookie)
             {
-                httpContext.Response.Cookies.Append(_hangFireCookieName, access_token,
+                httpContext.Response.Cookies.Append(HANGFIRE_COOKIE_NAME, access_token,
                 new CookieOptions()
                 {
                     Expires = DateTime.Now.AddMinutes(_cookieExpirationMinutes)

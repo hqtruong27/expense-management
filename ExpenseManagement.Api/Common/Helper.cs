@@ -1,5 +1,4 @@
 ﻿using System.Globalization;
-using System;
 
 namespace ExpenseManagement.Api.Common
 {
@@ -26,7 +25,7 @@ namespace ExpenseManagement.Api.Common
         public static string? ToVNPhoneNumber(this string str, bool withFormat = false)
         {
             var phoneNumber = !string.IsNullOrEmpty(str) && str.Length > 9 && str[..1] == "0" ? "84" + str.Remove(0, 1) : str;
-            return !string.IsNullOrWhiteSpace(phoneNumber) && withFormat ? $"+{phoneNumber}" : null;
+            return !string.IsNullOrWhiteSpace(phoneNumber) && withFormat ? $"+{phoneNumber}" : phoneNumber;
         }
 
         public static string? HMACSHA256(string text, string key)
@@ -53,7 +52,7 @@ namespace ExpenseManagement.Api.Common
         public static string GetDisplayName<T>(this T enumValue) where T : struct
         {
             //First judge whether it is enum type data
-            System.Type type = enumValue.GetType();
+            Type type = enumValue.GetType();
             if (!type.IsEnum)
             {
                 throw new ArgumentException("must be of Enum type", nameof(enumValue));
@@ -68,7 +67,7 @@ namespace ExpenseManagement.Api.Common
                 if (attributeData != null)
                 {
                     //Pull out the value
-                    return attributeData.NamedArguments.FirstOrDefault().TypedValue.Value?.ToString() ?? string.Empty;
+                    return attributeData.NamedArguments.FirstOrDefault().TypedValue.Value!.ToString() ?? string.Empty;
                 }
             }
 
@@ -84,7 +83,7 @@ namespace ExpenseManagement.Api.Common
                 throw new ArgumentException($"{nameof(enumValue)} must be of Enum type", nameof(enumValue));
             }
 
-            var enumString = enumValue.ToString() ?? String.Empty;
+            var enumString = enumValue.ToString() ?? string.Empty;
             var memberInfo = type.GetMember(enumString);
             if (memberInfo.Length > 0)
             {
