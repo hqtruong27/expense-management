@@ -8,8 +8,7 @@ namespace ExpenseManagement.Api.Common
 {
     public static class ModelBuilderExtensions
     {
-        private static readonly MethodInfo _propertyMethod = typeof(EF).GetMethods(BindingFlags.Static | BindingFlags.Public)
-                                                                       .First(x => x.Name == nameof(EF.Property))
+        private static readonly MethodInfo _propertyMethod = typeof(EF).GetMethod(nameof(EF.Property), BindingFlags.Static | BindingFlags.Public)!
                                                                        .MakeGenericMethod(typeof(bool));
         public static void FilterDeletedRecords(this ModelBuilder modelBuilder)
         {
