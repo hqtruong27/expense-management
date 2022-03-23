@@ -1,8 +1,8 @@
-﻿using System;
-using System.Diagnostics;
+﻿using System.Diagnostics;
 using System.Net;
 using System.Security.Cryptography;
 using System.Text;
+
 namespace ExpenseManagement.Api.Identity
 {
     internal static class Rfc6238AuthenticationService
