@@ -1,6 +1,4 @@
-﻿using ExpenseManagement.Api.Common.Resources;
-using ExpenseManagement.Api.Data.Models;
-using ExpenseManagement.Api.Data.Repositories;
+﻿using ExpenseManagement.Api.Data.Models;
 using ExpenseManagement.Api.Enum;
 using ExpenseManagement.Api.Middleware;
 using Microsoft.AspNetCore.DataProtection;

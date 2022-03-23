@@ -42,7 +42,7 @@
                         break;
                 }
 
-                var result = new Model.ResponseResult(response.StatusCode, error?.Message ?? string.Empty);
+                var result = new ResponseResult(response.StatusCode, error?.Message ?? string.Empty);
                 await response.WriteAsJsonAsync(result, new CancellationTokenSource().Token);
             }
         }

@@ -1,12 +1,10 @@
 ﻿using ExpenseManagement.Api.Data;
 using ExpenseManagement.Api.Data.Models;
-using ExpenseManagement.Api.Data.Repositories;
 using ExpenseManagement.Api.Hubs;
 using ExpenseManagement.Api.Identity;
 using ExpenseManagement.Api.Infrastructure;
 using ExpenseManagement.Api.Infrastructure.mapper;
 using ExpenseManagement.Api.Mfa;
-using ExpenseManagement.Api.Model;
 using ExpenseManagement.Api.Options;
 using FluentValidation.AspNetCore;
 using Hangfire;
@@ -155,7 +153,7 @@ namespace ExpenseManagement.Api.IocConfig
             builder.Services.Configure<Microsoft.AspNetCore.Mvc.ApiBehaviorOptions>(options => options.SuppressModelStateInvalidFilter = true);
             builder.Services.AddMvc(options =>
             {
-                options.Filters.Add(typeof(Model.Validator.ValidationResultAttribute));
+                options.Filters.Add(typeof(Models.Validator.ValidationResultAttribute));
             }).AddFluentValidation(fv =>
             {
                 fv.ImplicitlyValidateRootCollectionElements = true;

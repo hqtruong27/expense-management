@@ -1,6 +1,5 @@
 ﻿using AutoMapper;
 using ExpenseManagement.Api.Data.Models;
-using ExpenseManagement.Api.Model;
 using System.Linq.Expressions;
 
 namespace ExpenseManagement.Api.Infrastructure.mapper
