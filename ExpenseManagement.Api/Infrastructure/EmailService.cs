@@ -2,7 +2,6 @@
 using MimeKit;
 using MailKit.Net.Smtp;
 using ExpenseManagement.Api.Options;
-using ExpenseManagement.Api.Model;
 using MimeKit.Utils;
 using MimeKit.Text;
 using HtmlAgilityPack;

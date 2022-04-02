@@ -1,5 +1,4 @@
-﻿using ExpenseManagement.Api.Model;
-using MimeKit.Text;
+﻿using MimeKit.Text;
 
 namespace ExpenseManagement.Api.Infrastructure
 {

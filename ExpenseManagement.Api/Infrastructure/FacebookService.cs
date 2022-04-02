@@ -1,5 +1,4 @@
-﻿using ExpenseManagement.Api.Model;
-using ExpenseManagement.Api.Options;
+﻿using ExpenseManagement.Api.Options;
 using System.Text.Json;
 
 namespace ExpenseManagement.Api.Infrastructure

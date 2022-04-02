@@ -1,6 +1,4 @@
-﻿using ExpenseManagement.Api.Model;
-
-namespace ExpenseManagement.Api.Infrastructure
+﻿namespace ExpenseManagement.Api.Infrastructure
 {
     public interface IFacebookService
     {
