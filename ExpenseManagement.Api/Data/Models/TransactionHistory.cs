@@ -1,5 +1,4 @@
-﻿using ExpenseManagement.Api.Enum;
-using System.ComponentModel.DataAnnotations;
+﻿using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
 
 namespace ExpenseManagement.Api.Data.Models

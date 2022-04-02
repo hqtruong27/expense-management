@@ -1,5 +1,4 @@
-﻿
-namespace ExpenseManagement.Api.Data.Models
+﻿namespace ExpenseManagement.Api.Data.Models
 {
     public class UserChat
     {
