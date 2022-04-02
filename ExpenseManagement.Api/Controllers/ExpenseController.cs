@@ -1,10 +1,7 @@
 ﻿using AutoMapper;
-using ExpenseManagement.Api.Common;
-using ExpenseManagement.Api.Common.Resources;
 using ExpenseManagement.Api.Data.Models;
-using ExpenseManagement.Api.Data.Repositories;
-using ExpenseManagement.Api.Model;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.EntityFrameworkCore;
 
 namespace ExpenseManagement.Api.Controllers
 {
@@ -15,28 +12,96 @@ namespace ExpenseManagement.Api.Controllers
         private readonly IMapper _mapper;
         private readonly IExpenseRepository _expenseRepository;
         private readonly IUserExpenseRepository _userExpenseRepository;
+        private readonly IUserRepository _userRepository;
 
-        public ExpenseController(IExpenseRepository expenseRepository, IMapper mapper, IUserExpenseRepository userExpenseRepository)
+        public ExpenseController(IExpenseRepository expenseRepository, IMapper mapper, IUserExpenseRepository userExpenseRepository, IUserRepository userRepository)
         {
             _expenseRepository = expenseRepository;
             _mapper = mapper;
             _userExpenseRepository = userExpenseRepository;
+            _userRepository = userRepository;
         }
 
-        [HttpGet]
-        public async Task<IActionResult> Index([FromQuery] ExpenseIndexRequest request)
+        [HttpGet("sum")]
+        public async Task<IActionResult> Sum([FromQuery] bool isSpecific)
         {
-            var expenses = _expenseRepository.Where(x => (request.Query == null || x.Name.Contains(request.Query)
-                                                   || x.Description.Contains(request.Query) || x.CreatedBy.Contains(request.Query))
-                                                   && (request.From == null || x.CreatedDate.Date >= request.From.Value.Date)
-                                                   && (request.To == null || x.CreatedDate.Date <= request.To.Value.Date)
-                                                   && x.Status == request.Status);
+            var expenses = _expenseRepository.Expenses;
 
-            var pagination = await expenses.OrderByDescending(x => x.CreatedDate)
-                                           .ToPagedListAsync(x => _mapper.Map<ExpenseResponse>(x),
-                                           request.PageNumber, request.PageSize);
+            decimal total = 0;
+            decimal totalSpecific = 0;
+            if (isSpecific)
+            {
+                total = await expenses.Where(x => x.Type == Enum.ExpenseType.None).SumAsync(x => x.Amount);
+                totalSpecific = total / 3;
+            }
+            else
+            {
+                total = await expenses.SumAsync(x => x.Amount);
+            }
+
+            var groupByUser = expenses.GroupBy(i => i.UserExpense.UserId).Select(x =>
+                                       new UerExpenseGrouping
+                                       {
+                                           UserId = x.Key,
+                                           Total = x.Sum(x => x.Amount),
+                                       })
+                                      .Where(x => x.Total > 0);
+
+            var result = new ExpenseSumResponse
+            {
+                Total = total,
+                Specific = await _userRepository.Users.Join(groupByUser, u => u.Id, s => s.UserId, (u, s)
+                          => new UerJoinExpense
+                          {
+                              Total = s.Total + totalSpecific,
+                              User = _mapper.Map<UserResponse>(u),
+                          }).ToListAsync()
+            };
+
+            return Ok(new ResponseResult(result));
+        }
+        [HttpGet]
+        public async Task<IActionResult> Index([FromQuery] ExpenseIndexRequest req)
+        {
+            var expenses = _expenseRepository.Where(x => (req.Query == null || x.Name.Contains(req.Query)
+                                                   || x.Description.Contains(req.Query) || x.CreatedBy.Contains(req.Query))
+                                                   && (req.From == null || x.CreatedDate.Date >= req.From.Value.Date)
+                                                   && (req.To == null || x.CreatedDate.Date <= req.To.Value.Date)
+                                                   && (req.Status == null || x.Status == req.Status)
+                                                   && (x.UserExpense == null ? x.Type == Enum.ExpenseType.None
+                                                   : req.Type == null ? x.UserExpense.UserId == UserId
+                                                   || x.Type == Enum.ExpenseType.None : x.Type == req.Type));
+            switch (req.SortPrice)
+            {
+                case "desc":
+                    expenses = expenses.OrderByDescending(x => x.Amount).ThenByDescending(x => x.CreatedDate);
+                    break;
+                case "asc":
+                    expenses = expenses.OrderBy(x => x.Amount).ThenByDescending(x => x.CreatedDate);
+                    break;
+                default:
+                    expenses = expenses.OrderByDescending(x => x.CreatedDate);
+                    break;
+            }
+
+            var pagination = await expenses.ToPagedListAsync(x => _mapper.Map<ExpenseResponse>(x),
+                                           req.PageNumber, req.PageSize);
 
             return Ok(new ResponseResult(pagination));
+        }
+
+        [HttpGet("detail/{id}")]
+        public async Task<IActionResult> Detail([FromRoute] int id)
+        {
+            var expense = await _expenseRepository.FindByIdAsync(id, UserId);
+            if (expense == null)
+            {
+                return BadRequest(new ResponseResult(400, Messages.NotFound));
+            }
+
+            var result = _mapper.Map<ExpenseResponse>(expense);
+
+            return Ok(new ResponseResult(result));
         }
 
         [HttpPost("create")]
@@ -44,10 +109,16 @@ namespace ExpenseManagement.Api.Controllers
         {
             var expense = _mapper.Map<Expense>(request);
             var result = await _expenseRepository.AddAsync(expense);
-            if (result != null && request.Type == Enum.ExpenseType.Assign)
+            if (result != null)
             {
-                UserExpense userExpense = new() { ExpenseId = result.Id, UserId = Id };
-                await _userExpenseRepository.AddAsync(userExpense);
+                if (request.Type == ExpenseType.Assign)
+                {
+                    await _userExpenseRepository.AddAsync(new UserExpense
+                    {
+                        ExpenseId = result.Id,
+                        UserId = UserId
+                    });
+                }
 
                 return Ok(new ResponseResult(Messages.CreateSuccess));
             }
@@ -58,16 +129,36 @@ namespace ExpenseManagement.Api.Controllers
         [HttpPut("update/{id}")]
         public async Task<IActionResult> Update([FromRoute] int id, [FromBody] ExpenseUpdateRequest request)
         {
-            var userExpense = await _expenseRepository.SingleOrDefaultAsync(x => x.Id == id);
-            if (userExpense == null)
+            var data = await _expenseRepository.FirstOrDefaultAsync(x => x.Id == id, "UserExpense.User");
+            if (data == null)
             {
                 return BadRequest(new ResponseResult(400, Messages.NotFound));
             }
 
-            var expense = _mapper.Map<Expense>(request);
+            if (data.Type == Enum.ExpenseType.Assign && data.UserExpense?.UserId != UserId)
+            {
+                return BadRequest(new ResponseResult(400, Messages.NotFound));
+            }
+
+            var expense = _mapper.Map(request, data);
+
             await _expenseRepository.UpdateAsync(expense);
 
             return Ok(new ResponseResult(Messages.UpdateSuccess));
+        }
+
+        [HttpDelete("delete/{id}")]
+        public async Task<IActionResult> Delete([FromRoute] int id)
+        {
+            var expense = await _expenseRepository.FindByIdAsync(id, UserId);
+            if (expense == null)
+            {
+                return BadRequest(new ResponseResult(400, Messages.NotFound));
+            }
+
+            await _expenseRepository.DeleteAsync(expense);
+
+            return Ok(new ResponseResult(Messages.DeleteSuccess));
         }
     }
 }
