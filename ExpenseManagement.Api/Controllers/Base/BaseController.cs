@@ -11,9 +11,9 @@ namespace ExpenseManagement.Api.Controllers
     public class BaseController : TrackedController
     {
         protected string UserId => HttpContext.User.Claims.First(x => x.Type == ClaimTypes.NameIdentifier).Value;
-        protected string UserName => HttpContext.User.Identity != null ? HttpContext.User.Identity.Name ?? string.Empty : string.Empty;
-        protected string Surname => HttpContext.User.Claims.FirstOrDefault(x => x.Type == ClaimTypes.Surname)?.Value ?? string.Empty;
-        protected string GivenName => HttpContext.User.Claims.FirstOrDefault(x => x.Type == ClaimTypes.GivenName)?.Value ?? string.Empty;
+        protected string UserName => HttpContext.User.Identity?.Name ?? default!;
+        protected string Surname => HttpContext.User.Claims.FirstOrDefault(x => x.Type == ClaimTypes.Surname)?.Value ?? default!;
+        protected string GivenName => HttpContext.User.Claims.FirstOrDefault(x => x.Type == ClaimTypes.GivenName)?.Value ?? default!;
         protected string FullName => $"{Surname} {GivenName}";
     }
 }
