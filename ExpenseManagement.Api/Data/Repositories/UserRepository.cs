@@ -1,8 +1,8 @@
 ﻿using ExpenseManagement.Api.Data.Models;
 using ExpenseManagement.Api.Data.Repositories.Generic;
 using ExpenseManagement.Api.Enum;
+using ExpenseManagement.Api.Identity;
 using ExpenseManagement.Api.Infrastructure;
-using ExpenseManagement.Api.Model;
 using ExpenseManagement.Api.Options;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.IdentityModel.Tokens;
@@ -13,14 +13,22 @@ namespace ExpenseManagement.Api.Data.Repositories
 {
     public interface IUserRepository : IRepository<User>
     {
+        IQueryable<User> Users { get; }
+        UserManager<User> UserManager { get; }
         Task<JwtTokenResponse> AuthenticateAsync(string username, string password);
         Task<IdentityResult> CreateAsync(User user);
+        Task<IdentityResult> ChangePasswordAsync(User user, string currentPassword, string newPassword);
+        Task<bool> CheckPasswordAsync(User user, string password);
         Task<JwtTokenResponse> ExternalLoginAsync(ExternalLoginRequest request);
         Task<User> FindByEmailAsync(string email);
         Task<string> GeneratePasswordResetTokenAsync(User user);
+        Task<(string code, string lifespan)> GenerateChangeEmailTokenAsync(User user, string newEmail);
+        Task<bool> VerifyChangeEmailTokenAsync(User user, string code, string email);
         Task<string> GetTokenAsync(User user);
         Task<User> GetLoginInfoAsync();
         Task<IdentityResult> ResetPasswordAsync(User user, string code, string password);
+        string HashPassword(User user, string password);
+        Task<IdentityResult> UpdateAsync(User user);
     }
     public class UserRepository : GenericPersistentTrackedRepository<User>, IUserRepository
     {
@@ -39,6 +47,10 @@ namespace ExpenseManagement.Api.Data.Repositories
             _facebookService = facebookService;
             _googleService = googleService;
         }
+
+        public UserManager<User> UserManager => _userManager;
+
+        public virtual IQueryable<User> Users => GetAll();
 
         public async Task<JwtTokenResponse> AuthenticateAsync(string username, string password)
         {
@@ -125,66 +137,95 @@ namespace ExpenseManagement.Api.Data.Repositories
 
                     return new JwtTokenResponse { Description = "Token invalid." };
                 case Provider.Microsoft:
-                    return new JwtTokenResponse { Description = "Invalid External Authentication." };
+                    return new JwtTokenResponse { Description = "Not support login by Microsoft provider." };
                 case Provider.Twitter:
-                    return new JwtTokenResponse { Description = "Invalid External Authentication." };
+                    return new JwtTokenResponse { Description = "Not support login by Twitter provider" };
                 default:
                     return new JwtTokenResponse { Description = "Invalid External Authentication." };
             }
 
-            var info = new UserLoginInfo(provider.ToString(), providerKey, provider.ToString());
+            var providerString = provider.ToString();
+            var info = new UserLoginInfo(provider.ToString(), providerKey, providerString);
             var user = await _userManager.FindByLoginAsync(info.LoginProvider, info.ProviderKey);
-
-            var result = await _signInManager.ExternalLoginSignInAsync(provider.ToString(), providerKey, false);
-            if (result.Succeeded)
+            if (user != null)
             {
+                var result = await _signInManager.ExternalLoginSignInAsync(providerString, providerKey, false);
+                if (result.Succeeded)
+                {
+                    var (accessToken, validTo) = await GenerateJwtTokenAsync(user);
+
+                    _logger.LogInformation("END: success exteral login [1] {provider}", providerString);
+                    return new JwtTokenResponse
+                    {
+                        IsAuthenticated = true,
+                        FullName = $"{user.Surname} {user.GivenName}",
+                        Token = accessToken,
+                        Email = user.Email,
+                        Avatar = user.Avatar,
+                        ValidTo = validTo,
+                    };
+                }
+
+                if (result.RequiresTwoFactor)
+                {
+                    _logger.LogWarning("User required 2fa.");
+                    return new JwtTokenResponse { Description = "User required 2fa." };
+                }
+                if (result.IsLockedOut)
+                {
+                    _logger.LogWarning("User account locked out.");
+                    return new JwtTokenResponse { Description = "User account locked out." };
+                }
+                else
+                {
+                    _logger.LogWarning("User null or cant login");
+                    return new JwtTokenResponse { Description = "Invalid login attempt." };
+                }
+            }
+            else
+            {
+                user = await _userManager.FindByEmailAsync(email);
                 if (user == null)
                 {
-                    user = await _userManager.FindByEmailAsync(email);
-                    if (user == null)
+                    user = new User
                     {
-                        user = new User
-                        {
-                            Email = email,
-                            UserName = email,
-                            Avatar = picture,
-                            Surname = surname,
-                            GivenName = givenName,
-                            EmailConfirmed = emailVerified,
-                            CreatedDate = DateTime.Now,
-                            LastLogin = DateTime.Now,
-                        };
+                        Email = email,
+                        UserName = email,
+                        Avatar = picture,
+                        Surname = surname,
+                        GivenName = givenName,
+                        EmailConfirmed = emailVerified,
+                        CreatedDate = DateTime.Now,
+                        LastLogin = DateTime.Now,
+                    };
 
-                        await _userManager.CreateAsync(user);
-                        //prepare and send an email for the email confirmation
-                        //await _userManager.AddToRoleAsync(user, "Viewer");
-                        await _userManager.AddLoginAsync(user, info);
-                    }
-                    else
+                    await _userManager.CreateAsync(user);
+                    await _userManager.AddLoginAsync(user, info);
+                }
+                else
+                {
+                    if (string.IsNullOrEmpty(user.Email))
                     {
-                        if (string.IsNullOrEmpty(user.Email))
-                        {
-                            user.Email = email;
-                        }
-
-                        if (string.IsNullOrWhiteSpace($"{user.Surname} {user.GivenName}"))
-                        {
-                            user.Surname = surname;
-                            user.GivenName = givenName;
-                        }
-
-                        if (string.IsNullOrWhiteSpace(user.Avatar))
-                        {
-                            user.Avatar = picture;
-                        }
-
-                        await _userManager.UpdateAsync(user);
+                        user.Email = email;
                     }
+
+                    if (string.IsNullOrWhiteSpace($"{user.Surname} {user.GivenName}"))
+                    {
+                        user.Surname = surname;
+                        user.GivenName = givenName;
+                    }
+
+                    if (string.IsNullOrWhiteSpace(user.Avatar))
+                    {
+                        user.Avatar = picture;
+                    }
+
+                    await _userManager.UpdateAsync(user);
                 }
 
                 var (accessToken, validTo) = await GenerateJwtTokenAsync(user);
 
-                _logger.LogInformation("END: success exteral login {provider}", provider);
+                _logger.LogInformation("END: success exteral login [2] {provider}", providerString);
                 return new JwtTokenResponse
                 {
                     IsAuthenticated = true,
@@ -194,24 +235,6 @@ namespace ExpenseManagement.Api.Data.Repositories
                     Avatar = user.Avatar,
                     ValidTo = validTo,
                 };
-            }
-
-            //TODO: check for the Locked out account
-            //logic code here...
-
-            if (result.RequiresTwoFactor)
-            {
-                _logger.LogWarning("User required 2fa.");
-                return new JwtTokenResponse { Description = "User required 2fa." };
-            }
-            if (result.IsLockedOut)
-            {
-                _logger.LogWarning("User account locked out.");
-                return new JwtTokenResponse { Description = "User account locked out." };
-            }
-            else
-            {
-                return new JwtTokenResponse { Description = "Invalid login attempt." };
             }
         }
 
@@ -267,6 +290,47 @@ namespace ExpenseManagement.Api.Data.Repositories
         public async Task<User> GetLoginInfoAsync()
         {
             return await _userManager.FindByNameAsync(_signInManager.Context?.User.Identity?.Name);
+        }
+
+        public string HashPassword(User user, string password)
+        {
+            return _userManager.PasswordHasher.HashPassword(user, password);
+        }
+
+        public async Task<bool> CheckPasswordAsync(User user, string password)
+        {
+            return await _userManager.CheckPasswordAsync(user, password);
+        }
+
+        public async Task<IdentityResult> ChangePasswordAsync(User user, string currentPassword, string newPassword)
+        {
+            return await _userManager.ChangePasswordAsync(user, currentPassword, newPassword);
+        }
+
+        /// <summary>
+        /// Generate otp code with default life span 30 minutes
+        /// </summary>
+        /// <param name="user"></param>
+        /// <returns></returns>
+        /// <exception cref="NotImplementedException"></exception>
+        public async Task<(string code, string lifespan)> GenerateChangeEmailTokenAsync(User user, string newEmail)
+        {
+            const string defaultLifeSpan = "30 phút.";
+            var code = await _userManager.GenerateUserTokenAsync(user, ExpenseTokenOptions.ChangeEmailProvider, newEmail);
+
+            return (code, defaultLifeSpan);
+        }
+
+        public async Task<bool> VerifyChangeEmailTokenAsync(User user, string code, string email)
+        {
+            return await _userManager.VerifyUserTokenAsync(user, ExpenseTokenOptions.ChangeEmailProvider, code, email);
+        }
+
+        public Task<IdentityResult> UpdateAsync(User user)
+        {
+            user.LastUpdatedBy = CurrentUser;
+            user.LastUpdatedDate = DateTime.Now;
+            return _userManager.UpdateAsync(user);
         }
     }
 }
