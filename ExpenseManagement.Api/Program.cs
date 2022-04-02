@@ -1,7 +1,7 @@
+using Serilog;
+using Hangfire;
 using ExpenseManagement.Api.IocConfig;
 using ExpenseManagement.Api.Middleware;
-using Hangfire;
-using Serilog;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -21,8 +21,6 @@ else
 
 app.UseSwaggerExtensions();
 
-app.UseSerilogRequestLogging();
-
 app.UseHttpsRedirection();
 app.UseStaticFiles();
 
@@ -31,6 +29,8 @@ app.UseCorsExtensions();
 
 // global error handler
 app.UseErrorHandlerMiddleware();
+
+app.UseSerilogRequestLogging();
 
 app.UseAuthentication();
 app.UseAuthorization();
@@ -46,12 +46,13 @@ app.UseEndpoints(endpoints =>
             IgnoreAntiforgeryToken = true,
             StatsPollingInterval = 1024,
             DashboardTitle = "Hangfire Spending",
-            Authorization = new[] { new ExpenseManagement.Api.Attribute.HangFireAuthorizationFilter(app.Configuration) },// Enumerable.Empty<ExpenseManagement.Api.Attribute.HangFireAuthorizationFilter>(),
+            Authorization = new[] { new ExpenseManagement.Api.Attribute.HangFireAuthorizationFilter(app.Configuration) },
         });
     }
 
     endpoints.MapHub<ExpenseManagement.Api.Hubs.NotificationHub>("/notificationhub");
     endpoints.MapHub<ExpenseManagement.Api.Hubs.ChatHub>("/chathub");
+    endpoints.MapHub<ExpenseManagement.Api.Hubs.LogHub>("/logs");
 });
 
 Task.Run(async () => await ExpenseManagement.Api.Start.Start.Yield(app));
