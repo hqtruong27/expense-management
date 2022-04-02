@@ -1,10 +1,5 @@
 ﻿using AutoMapper;
-using ExpenseManagement.Api.Common;
-using ExpenseManagement.Api.Common.Resources;
 using ExpenseManagement.Api.Data.Models;
-using ExpenseManagement.Api.Data.Repositories;
-using ExpenseManagement.Api.Enum;
-using ExpenseManagement.Api.Model;
 using Microsoft.AspNetCore.Mvc;
 
 namespace ExpenseManagement.Api.Controllers

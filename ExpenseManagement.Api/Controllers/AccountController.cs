@@ -1,6 +1,4 @@
-﻿using ExpenseManagement.Api.Data.Repositories;
-using ExpenseManagement.Api.Infrastructure;
-using ExpenseManagement.Api.Model;
+﻿using ExpenseManagement.Api.Infrastructure;
 using ExpenseManagement.Api.Options;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.WebUtilities;

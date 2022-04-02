@@ -5,6 +5,7 @@ namespace ExpenseManagement.Api.Attribute
     public class OperationCanceledExceptionFilter : ExceptionFilterAttribute
     {
         private readonly ILogger _logger;
+        private const int CLIENT_CLOSED_REQUEST = 499;
 
         public OperationCanceledExceptionFilter(ILogger<OperationCanceledExceptionFilter> logger)
         {
@@ -17,7 +18,6 @@ namespace ExpenseManagement.Api.Attribute
             {
                 _logger.LogInformation("Request was cancelled");
                 context.ExceptionHandled = true;
-                const int CLIENT_CLOSED_REQUEST = 499;
                 context.Result = new Microsoft.AspNetCore.Mvc.StatusCodeResult(CLIENT_CLOSED_REQUEST);
             }
         }
