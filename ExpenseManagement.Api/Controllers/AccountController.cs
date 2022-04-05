@@ -46,32 +46,19 @@ namespace ExpenseManagement.Api.Controllers
         }
 
         [HttpPost("ForgotPassword")]
-        public async Task<IActionResult> ForgotPassword([FromServices] Email email)
+        public async Task<IActionResult> ForgotPassword([FromBody] string email)
         {
-            await _emailService.SendAsync(new MailMessage(email.ToDefault.Split(','), email.Subject, string.Format(email.Body, DateTime.Now.AddDays(10))));
-            //var user = await _userRepository.FindByEmailAsync("");
-            //if (user == null || !user.EmailConfirmed)
-            //{
-            //    // Don't reveal that the user does not exist or is not confirmed
-            //    return RedirectToPage("./ForgotPasswordConfirmation");
-            //}
+            var user = await _userRepository.FindByEmailAsync(email);
+            if (user == null || !user.EmailConfirmed)
+            {
+                // Don't reveal that the user does not exist or is not confirmed
+                return Ok(new ResponseResult());
+            }
 
-            //// For more information on how to enable account confirmation and password reset please
-            //// visit https://go.microsoft.com/fwlink/?LinkID=532713
-            //var code = await _userRepository.GeneratePasswordResetTokenAsync(user);
-            //code = WebEncoders.Base64UrlEncode(Encoding.UTF8.GetBytes(code));
-            //var callbackUrl = Url.Page(
-            //    "/Account/ResetPassword",
-            //    pageHandler: null,
-            //    values: new { area = "Identity", code },
-            //    protocol: Request.Scheme);
+            var (code, lifespan) = await _userRepository.GeneratePasswordResetTokenAsync(user);
+            await _emailService.SendOTPAsync(user.Email, code, lifespan);
 
-            //await _emailSender.SendEmailAsync(
-            //    Input.Email,
-            //    "Reset Password",
-            //    $"Please reset your password by <a href='{HtmlEncoder.Default.Encode(callbackUrl)}'>clicking here</a>.");
-
-            return Ok("send email success");
+            return Ok(new ResponseResult());
         }
     }
 }

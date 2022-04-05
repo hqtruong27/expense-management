@@ -5,6 +5,6 @@
         ChangeEmail,
         EmailConfirmation,
         ChangePhoneNumber,
-        ForgotPassword
+        PasswordReset
     }
 }

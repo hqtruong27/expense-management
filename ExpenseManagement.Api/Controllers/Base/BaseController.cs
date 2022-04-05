@@ -14,6 +14,6 @@ namespace ExpenseManagement.Api.Controllers
         protected string UserName => HttpContext.User.Identity?.Name ?? default!;
         protected string Surname => HttpContext.User.Claims.FirstOrDefault(x => x.Type == ClaimTypes.Surname)?.Value ?? default!;
         protected string GivenName => HttpContext.User.Claims.FirstOrDefault(x => x.Type == ClaimTypes.GivenName)?.Value ?? default!;
-        protected string FullName => $"{Surname} {GivenName}";
+        protected string FullName => string.IsNullOrEmpty(Surname + GivenName) ? $"{Surname} {GivenName}" : $"{Surname}{GivenName}";
     }
 }
