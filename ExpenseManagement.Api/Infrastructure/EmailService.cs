@@ -12,11 +12,13 @@ namespace ExpenseManagement.Api.Infrastructure
     {
         private readonly Email _email;
         private readonly IWebHostEnvironment _webHostEnvironment;
+        private readonly Template _template;
 
-        public EmailService(Email email, IWebHostEnvironment webHostEnvironment)
+        public EmailService(Email email, IWebHostEnvironment webHostEnvironment, Template template)
         {
             _email = email;
             _webHostEnvironment = webHostEnvironment;
+            _template = template;
         }
 
         public async Task SendAsync(MailMessage message)
@@ -96,5 +98,20 @@ namespace ExpenseManagement.Api.Infrastructure
 
         public async Task SendAsync(string to, string subject, string content, TextFormat? textFormat = default)
             => await SendAsync(new MailMessage(to, subject, content, textFormat));
+
+        public async Task SendOTPAsync(string to, string code, string lifespan)
+        {
+            var subject = $"{code} là mã xác nhận Expense Management của bạn";
+
+            using var templateTask = _template.EmailOtp.ReadTextAsync();
+            var cssTask = _template.EmailOtpCss.ReadTextAsync();
+            await Task.WhenAll(templateTask, cssTask);
+
+            var css = await cssTask;
+            var template = await templateTask;
+
+            var content = string.Format(template, code, lifespan).Replace("{useStyle}", css);
+            await SendAsync(to, subject, content, TextFormat.Html);
+        }
     }
 }

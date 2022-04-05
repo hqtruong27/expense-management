@@ -43,15 +43,14 @@ namespace ExpenseManagement.Api.IocConfig
             // Identity services
             builder.Services.AddIdentity<User, Role>(options =>
                             {
-                                options.Tokens.EmailConfirmationTokenProvider = "emailConfirmation";
-                                options.Tokens.PasswordResetTokenProvider = "passwordReset";
+                                //options.Tokens.EmailConfirmationTokenProvider = "emailConfirmation";
+                                //options.Tokens.PasswordResetTokenProvider = "passwordReset";
                                 //options.Tokens.ChangeEmailTokenProvider = TokenOptions.DefaultEmailProvider;
                             })
-                            .AddEntityFrameworkStores<ExpenseManagementDbcontext>()
                             .AddDefaultTokenProviders()
-                            //.AddTokenProvider<PasswordResetTokenProvider<User>>("passwordReset")
-                            //.AddTokenProvider<ChangeEmailTokenProvider<User>>("Email2")
-                            .AddTokenProvider<ChangeEmailTotpSecurityStampTokenProvider<User>>(ExpenseTokenOptions.ChangeEmailProvider);
+                            .AddEntityFrameworkStores<ExpenseManagementDbcontext>()
+                            .AddTokenProvider<ChangeEmailTotpSecurityStampTokenProvider<User>>(ExpenseTokenOptions.ChangeEmailProvider)
+                            .AddTokenProvider<PasswordResetTotpSecurityStampTokenProvider<User>>(ExpenseTokenOptions.PasswordResetProvider);
 
             builder.Services.AddSignalR();
             builder.Services.AddHangfire(c => c.UseSqlServerStorage(connecttionString));
