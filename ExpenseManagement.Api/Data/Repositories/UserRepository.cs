@@ -21,7 +21,7 @@ namespace ExpenseManagement.Api.Data.Repositories
         Task<bool> CheckPasswordAsync(User user, string password);
         Task<JwtTokenResponse> ExternalLoginAsync(ExternalLoginRequest request);
         Task<User> FindByEmailAsync(string email);
-        Task<string> GeneratePasswordResetTokenAsync(User user);
+        Task<(string code, string lifespan)> GeneratePasswordResetTokenAsync(User user);
         Task<(string code, string lifespan)> GenerateChangeEmailTokenAsync(User user, string newEmail);
         Task<bool> VerifyChangeEmailTokenAsync(User user, string code, string email);
         Task<string> GetTokenAsync(User user);
@@ -282,9 +282,12 @@ namespace ExpenseManagement.Api.Data.Repositories
             return _userManager.FindByEmailAsync(email);
         }
 
-        public Task<string> GeneratePasswordResetTokenAsync(User user)
+        public async Task<(string code, string lifespan)> GeneratePasswordResetTokenAsync(User user)
         {
-            return _userManager.GeneratePasswordResetTokenAsync(user);
+            const string defaultLifeSpan = "30 phút.";
+            var code = await _userManager.GenerateUserTokenAsync(user, ExpenseTokenOptions.PasswordResetProvider, user.Email);
+
+            return (code, defaultLifeSpan);
         }
 
         public async Task<User> GetLoginInfoAsync()

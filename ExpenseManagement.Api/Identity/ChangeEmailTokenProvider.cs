@@ -83,7 +83,7 @@ namespace ExpenseManagement.Api.Identity
                 Code = code,
                 Email = purpose,
                 Expired = DateTimeOffset.Now.AddMinutes(30),
-                Type = Enum.TotpSercurityTokenType.ChangeEmail,
+                Type = TotpSercurityTokenType.ChangeEmail,
             });
 
             return code;
