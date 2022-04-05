@@ -162,19 +162,7 @@ namespace ExpenseManagement.Api.Controllers
             var user = await _userRepository.GetLoginInfoAsync();
             var (code, lifespan) = await _userRepository.GenerateChangeEmailTokenAsync(user, req.Email);
 
-            var subject = $"{code} là mã xác nhận Expense Management của bạn";
-
-            using (var templateTask = _template.EmailOtp.ReadTextAsync())
-            {
-                using var cssTask = _template.EmailOtpCss.ReadTextAsync();
-                await Task.WhenAll(templateTask, cssTask);
-
-                var css = await cssTask;
-                var template = await templateTask;
-
-                var content = string.Format(template, code, $"{lifespan}").Replace("{useStyle}", css);
-                await _emailService.SendAsync(req.Email, subject, content, MimeKit.Text.TextFormat.Html);
-            }
+            await _emailService.SendOTPAsync(user.Email, code, lifespan);
 
             return Ok(new ResponseResult("Enter below to verify your email."));
         }
@@ -184,19 +172,19 @@ namespace ExpenseManagement.Api.Controllers
         {
             var user = await _userRepository.GetLoginInfoAsync();
             var verified = await _userRepository.VerifyChangeEmailTokenAsync(user, req.Code, req.Email);
-            if (verified)
+            if (!verified)
             {
-                user.Email = req.Email;
-                var result = await _userRepository.UpdateAsync(user);
-                if (result.Succeeded)
-                {
-                    return Ok(new ResponseResult(Messages.ChangeEmailSuccess));
-                }
-
-                return Conflict(new ResponseResult(409, result.Errors));
+                return BadRequest(new ResponseResult(400, Messages.OTPInvalid));
             }
 
-            return BadRequest(new ResponseResult(400, Messages.OTPInvalid));
+            user.Email = req.Email;
+            var result = await _userRepository.UpdateAsync(user);
+            if (result.Succeeded)
+            {
+                return Ok(new ResponseResult(Messages.ChangeEmailSuccess));
+            }
+
+            return Conflict(new ResponseResult(409, result.Errors));
         }
     }
 }
