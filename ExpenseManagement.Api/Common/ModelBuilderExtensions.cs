@@ -1,6 +1,7 @@
 ﻿using ExpenseManagement.Api.Data.Models;
 using ExpenseManagement.Api.Data.Models.Base;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.EntityFrameworkCore.Metadata.Builders;
 using System.Linq.Expressions;
 using System.Reflection;
 
@@ -28,6 +29,12 @@ namespace ExpenseManagement.Api.Common
             var condition = Expression.MakeBinary(ExpressionType.Equal, prop, Expression.Constant(false));
             var lambda = Expression.Lambda(condition, param);
             return lambda;
+        }
+
+        public static EntityTypeBuilder<TEntity> AddIndex<TEntity>(this EntityTypeBuilder<TEntity> builder, Expression<Func<TEntity, object?>> indexExpression) where TEntity : class
+        {
+            builder.HasIndex(indexExpression);
+            return builder;
         }
     }
 }
