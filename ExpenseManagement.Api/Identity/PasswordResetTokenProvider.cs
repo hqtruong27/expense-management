@@ -52,7 +52,6 @@ namespace ExpenseManagement.Api.Identity
             var any = true;
             while (any || code == default)
             {
-                //generate 6 digit random number truonghq
                 code = RandomNumberGenerator.GetInt32(_min, _max).ToString();
                 any = await _totpSercurityToken.AnyAsync(x => x.Code == code.ToString() && x.Email == purpose && x.Type == _passwordReset);
             }
